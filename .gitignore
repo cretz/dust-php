@@ -1,0 +1,7 @@
+/dust-php.csproj
+/dust-php.csproj.user
+/node_modules
+/obj
+/bin
+*.js
+*.js.map

@@ -1,0 +1,21 @@
+﻿{
+    "name": "dust-php",
+    "author": "Chad Retz",
+    "homepage": "http://github.com/cretz/dust-php",
+    "version": "0.1.0",
+    "licenses": [{
+        "type": "MIT",
+        "url": "https://raw.github.com/cretz/dust-php/master/LICENSE"
+    }],
+    "description": "Dust is a PHP templating language modelled off of dustjs",
+    "keywords": ["php", "dust", "template", "pratphall", "dustjs"],
+    "bugs": { "url": "https://github.com/cretz/dust-php/issues" },
+    "repository": {
+        "type": "git",    
+        "url": "https://github.com/cretz/dust-php.git"
+    },
+    "engines": { "node": ">=0.8.0" },
+    "devDependencies": {
+        "dustjs-linkedin": "latest"
+    }
+}
