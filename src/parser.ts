@@ -107,13 +107,13 @@ module Dust.Parser {
         parseSection(ctx: ParserContext) {
             if (ctx.peek() != '{') return null;
             var type = ctx.peek(2);
-            if (!in_array(type, Ast.Section.ACCEPTABLE_TYPES)) return null;
+            if (!in_array(type, Ast.Section.acceptableTypes)) return null;
             var sec = new Ast.Section(ctx.offset);
             sec.type = type;
             ctx.offset += 2;
             ctx.skipWhitespace();
             sec.identifier = this.parseIdentifier(ctx);
-            if (sec.identifier) this.error('Expected identifier', ctx);
+            if (sec.identifier == null) this.error('Expected identifier', ctx);
             sec.context = this.parseContext(ctx);
             sec.parameters = this.parseParameters(ctx);
             ctx.skipWhitespace();
@@ -380,17 +380,17 @@ module Dust.Parser {
             var endQuote = ctx.offset;
             do {
                 endQuote = strpos(ctx.str, '"', endQuote + 1);
-            } while (!Pct.isFalse(endQuote) && ctx.str.charAt(endQuote - 1) == '\\');
+            } while (Pct.isNotFalse(endQuote) && ctx.str.charAt(endQuote - 1) == '\\');
             //empty literal means no literal
             if (endQuote == ctx.offset + 1) return null;
             //see if there are any tags in between the current offset and the first quote
             var possibleTag = -1;
             do {
                 possibleTag = strpos(ctx.str, '{', possibleTag + 1);
-            } while (!Pct.isFalse(possibleTag) && possibleTag < endQuote && !this.isTag(ctx.str, possibleTag));
+            } while (Pct.isNotFalse(possibleTag) && possibleTag < endQuote && !this.isTag(ctx.str, possibleTag));
             //substring it
             var endIndex = endQuote;
-            if (!Pct.isFalse(possibleTag) && possibleTag > endQuote) endIndex = possibleTag;
+            if (Pct.isNotFalse(possibleTag) && possibleTag > endQuote) endIndex = possibleTag;
             //empty literal means no literal
             if (endIndex == ctx.offset + 1) return null;
             var literal = new Ast.InlineLiteral(ctx.offset);

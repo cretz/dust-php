@@ -17,7 +17,7 @@ module Dust.Ast {
     }
 
     export class Section extends Part {
-        static ACCEPTABLE_TYPES = ['#', '?', '^', '<', '+', '@', '%'];
+        static acceptableTypes = ['#', '?', '^', '<', '+', '@', '%'];
 
         type: string;
         identifier: Identifier;
