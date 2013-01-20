@@ -1,0 +1,20 @@
+{
+    "name": "dust-php/dust-php",
+    "description": "A templating engine for PHP based on dust",
+    "keywords": ["templating", "dust"],
+    "homepage": "https://github.com/cretz/dust-php",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        { "name": "Chad Retz" }
+    ],
+    "require": {
+        "php": ">=5.4.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "3.7.*"
+    },
+    "autoload": {
+        "psr-0": { "Dust": "src/" }
+    }
+}

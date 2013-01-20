@@ -1,14 +1,12 @@
-///<reference path="dust.ts" />
+///<reference path="common.ts" />
 
-module Dust.Parser {
+module Dust.Parse {
 
-    import Ast = Dust.Ast;
-
-    class ParserOptions {
+    export class ParserOptions {
 
     }
 
-    class ParserContext {
+    export class ParserContext {
         offset: number = 0;
         offsetTransactionStack: number[] = [];
 
@@ -47,19 +45,19 @@ module Dust.Parser {
         }
 
         peek(offset = 1) {
-            if (this.str.length <= this.offset + offset) return null;
-            return this.str.charAt(this.offset + offset);
+            if (this.str.length <= this.offset + (offset - 1)) return null;
+            return this.str.charAt(this.offset + (offset - 1));
         }
 
         next() {
             this.offset++;
-            if (this.str.length <= this.offset) return null;
-            return this.str.charAt(this.offset);
+            if (this.str.length <= (this.offset - 1)) return null;
+            return this.str.charAt((this.offset - 1));
         }
 
         skipWhitespace() {
             var found = false;
-            while (in_array(this.peek(), [' ', '\t', '\v', '\f'])) {
+            while (in_array(this.peek(), [' ', '\t', '\v', '\f', '\r', '\n'])) {
                 this.offset++;
                 found = true;
             }
@@ -67,14 +65,14 @@ module Dust.Parser {
         }
     }
 
-    class ParseException extends Exception {
+    export class ParseException extends DustException {
         constructor(message: string, public line: number, public col: number) {
-            super(message);
+            super('(' + line + ',' + col + ') ' + message);
         }
     }
 
-    class Parser {
-        constructor(public options: ParserOptions) { }
+    export class Parser {
+        constructor(public options = new ParserOptions()) { }
 
         error(message: string, ctx: ParserContext) {
             //find line and col
@@ -82,10 +80,17 @@ module Dust.Parser {
             throw new ParseException(message, loc.line, loc.col);
         }
 
-        parseBody(ctx: ParserContext) {
+        parse(str: string) {
+            var ctx = new ParserContext(str);
+            var ret = this.parseBody(ctx);
+            if (ctx.offset != ctx.str.length) this.error('Unexpected character', ctx);
+            return ret;
+        }
+
+        parseBody(ctx: ParserContext): Ast.Body {
             var body = new Ast.Body(ctx.offset);
             body.parts = [];
-            while (true) {
+            while (ctx.offset < ctx.str.length) {
                 var part = this.parsePart(ctx);
                 if (part == null) break;
                 body.parts.push(part);
@@ -108,10 +113,17 @@ module Dust.Parser {
             if (ctx.peek() != '{') return null;
             var type = ctx.peek(2);
             if (!in_array(type, Ast.Section.acceptableTypes)) return null;
+            ctx.beginTransaction();
             var sec = new Ast.Section(ctx.offset);
             sec.type = type;
             ctx.offset += 2;
             ctx.skipWhitespace();
+            //can't handle quote
+            if (type == '+' && ctx.peek() == '"') {
+                ctx.rollbackTransaction();
+                return null;
+            }
+            ctx.commitTransaction();
             sec.identifier = this.parseIdentifier(ctx);
             if (sec.identifier == null) this.error('Expected identifier', ctx);
             sec.context = this.parseContext(ctx);
@@ -127,7 +139,8 @@ module Dust.Parser {
             if (ctx.next() != '{') this.error('Missing end tag', ctx);
             if (ctx.next() != '/') this.error('Missing end tag', ctx);
             ctx.skipWhitespace();
-            if (this.parseIdentifier(ctx) != sec.identifier) {
+            var end = this.parseIdentifier(ctx);
+            if (end == null || end.toString() != sec.identifier.toString()) {
                 this.error('Expecting end tag for ' + sec.identifier, ctx);
             }
             ctx.skipWhitespace();
@@ -218,7 +231,6 @@ module Dust.Parser {
             if (type != '>' && type != '+') return null;
             var partial = new Ast.Partial(ctx.offset);
             ctx.offset += 2;
-            ctx.skipWhitespace();
             partial.type = type;
             partial.key = this.parseKey(ctx);
             if (partial.key == null) partial.inline = this.parseInline(ctx);
@@ -294,6 +306,7 @@ module Dust.Parser {
             var str = this.parseInteger(ctx);
             if (str == null) return null;
             if (ctx.peek() == '.') {
+                ctx.offset++;
                 var next = this.parseInteger(ctx);
                 if (next == null) this.error('Expecting decimal contents', ctx);
                 return str + '.' + next;
@@ -318,7 +331,7 @@ module Dust.Parser {
                 if (part == null) break;
                 inline.parts.push(part);
             }
-            if (ctx.peek() != '"') this.error('Expecting ending quote', ctx);
+            if (ctx.next() != '"') this.error('Expecting ending quote', ctx);
             return inline;
         }
 
@@ -329,7 +342,7 @@ module Dust.Parser {
             var line = ctx.str.substr(ctx.offset, eol - ctx.offset);
             //go through string and make sure there's not a tag or comment
             var possibleEnd = -1;
-            while (line != '') {
+            while (true) {
                 possibleEnd = strpos(line, '{', possibleEnd + 1);
                 if (Pct.isFalse(possibleEnd)) break;
                 if (this.isTag(line, possibleEnd) || this.isComment(line, possibleEnd)) {
@@ -337,6 +350,7 @@ module Dust.Parser {
                     break;
                 }
             }
+            if (empty(line) && (Pct.isFalse(eol) || Pct.isNotFalse(possibleEnd))) return null;
             var buffer = new Ast.Buffer(ctx.offset);
             buffer.contents = line;
             ctx.offset += line.length;
@@ -364,10 +378,11 @@ module Dust.Parser {
             if (Pct.isFalse(strpos('#?^><+%:@/~%', str.charAt(curr)))) {
                 //well then just check for any reference
                 var newCtx = new ParserContext(str);
-                newCtx.offset = curr;
+                newCtx.offset = curr - 1;
                 if (this.parseReference(newCtx) == null) return false;
             }
-            return true;
+            //so now it's all down to whether there is a closing brace
+            return Pct.isNotFalse(strpos(str, '}', curr));
         }
 
         isComment(str: string, offset: number) {
@@ -376,26 +391,28 @@ module Dust.Parser {
         }
 
         parseLiteral(ctx: ParserContext) {
+            //empty is not a literal
+            if (ctx.peek() == '"') return null;
             //find first non-escaped quote
             var endQuote = ctx.offset;
             do {
                 endQuote = strpos(ctx.str, '"', endQuote + 1);
             } while (Pct.isNotFalse(endQuote) && ctx.str.charAt(endQuote - 1) == '\\');
-            //empty literal means no literal
-            if (endQuote == ctx.offset + 1) return null;
+            //missing end quote is a problem
+            if (Pct.isFalse(endQuote)) this.error('Missing end quote', ctx);
             //see if there are any tags in between the current offset and the first quote
-            var possibleTag = -1;
+            var possibleTag = ctx.offset - 1;
             do {
                 possibleTag = strpos(ctx.str, '{', possibleTag + 1);
             } while (Pct.isNotFalse(possibleTag) && possibleTag < endQuote && !this.isTag(ctx.str, possibleTag));
             //substring it
             var endIndex = endQuote;
-            if (Pct.isNotFalse(possibleTag) && possibleTag > endQuote) endIndex = possibleTag;
+            if (Pct.isNotFalse(possibleTag) && possibleTag < endQuote) endIndex = possibleTag;
             //empty literal means no literal
             if (endIndex == ctx.offset + 1) return null;
             var literal = new Ast.InlineLiteral(ctx.offset);
-            literal.value = ctx.str.substr(ctx.offset, endIndex);
-            ctx.offset = endIndex;
+            literal.value = ctx.str.substr(ctx.offset, endIndex - ctx.offset);
+            ctx.offset += literal.value.length;
             return literal;
         }
 

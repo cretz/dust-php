@@ -1,4 +1,4 @@
-﻿///<reference path="dust.ts" />
+﻿///<reference path="common.ts" />
 
 module Dust.Filter {
 
@@ -23,7 +23,7 @@ module Dust.Filter {
 
     export class EncodeUri implements Filter {
         //ref: http://stackoverflow.com/questions/4929584/encodeuri-in-php
-        private static replacers = Pct.newAssocArray({
+        static replacers = Pct.newAssocArray({
             //unescaped
             '%2D': '-',
             '%5F': '_',
@@ -54,7 +54,7 @@ module Dust.Filter {
 
     export class EncodeUriComponent implements Filter {
         //ref: http://stackoverflow.com/questions/1734250/what-is-the-equivalent-of-javascripts-encodeuricomponent-in-php
-        private static replacers = Pct.newAssocArray({
+        static replacers = Pct.newAssocArray({
             '%21': '!',
             '%2A': '*',
             '%27': "'",
@@ -70,6 +70,6 @@ module Dust.Filter {
     }
 
     export class JsonDecode implements Filter {
-        apply(str: string) { return json_decode(str); }
+        apply(str: string) { return strval(json_decode(str)); }
     }
 }

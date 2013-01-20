@@ -1,5 +1,6 @@
 ///<reference path='../node_modules/pratphall/src/pratphall.ts' />
 
+//this extension PHP-ifies the spec tests
 module Dust.Extension {
 
     //import the existing spec
@@ -23,7 +24,9 @@ module Dust.Extension {
         //uses set timeout
         'intro',
         //async
-        'async_key'
+        'async_key',
+        //pragmas not supported atm (hard to find concrete definition)
+        'escape_pragma'
     ];
     //register emitter extension to write our tests for us
     Pratphall.PhpEmitter.registerExtension({
@@ -43,10 +46,18 @@ module Dust.Extension {
             tests.forEach((test: SpecTest) => {
                 if (ignored.indexOf(test.name) != -1) return;
                 //make a function name from the name
-                funcNames.push('test' + test.name.replace(/[^A-Za-z0-9_ ]/g, '').toLowerCase().split(/ |_/g).
+                var funcName = 'test' + test.name.replace(/[^A-Za-z0-9_ ]/g, '').toLowerCase().split(/ |_/g).
                     reduce((prev: string, curr: string) => {
                         return prev + curr.charAt(0).toUpperCase() + curr.substr(1);
-                    }, ''));
+                    }, '');
+                //need to make sure we don't have ambiguous name
+                var properFuncName = funcName;
+                var counter = 1;
+                while (funcNames.indexOf(properFuncName) != -1) {
+                    properFuncName += ++counter;
+                }
+                //add func and script
+                funcNames.push(properFuncName);
                 scripts.push('var test = ' + Pratphall.toJavaScriptSource(test));
             });
             //compile the scripts
@@ -54,6 +65,7 @@ module Dust.Extension {
             asts.forEach((value: TypeScript.Script, index: number) => {
                 emitter.newline().write('public function ' + funcNames[index] + '() {').increaseIndent().newline();
                 emitter.emit(value.bod.members[0]).write(';');
+                emitter.newline().write('$this->runSpecTest($test);');
                 emitter.decreaseIndent().newline().write('}').newline();
             });
             return true;
