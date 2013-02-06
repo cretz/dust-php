@@ -3,21 +3,44 @@
 module Dust.Filter {
 
     export interface Filter {
-        apply(str: string): string;
+        apply(item: any): any;
     }
 
     export class SuppressEscape implements Filter {
-        apply(str: string) { return str; }
+        apply(item: any) { return item; }
     }
 
     export class HtmlEscape implements Filter {
-        apply(str: string) { return htmlspecialchars(str); }
+        static replacers = Pct.newAssocArray({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        });
+
+        apply(item: any) {
+            if (!is_string(item)) return item;
+            return str_replace(array_keys(HtmlEscape.replacers),
+                array_values(HtmlEscape.replacers), <string>item);
+        }
     }
 
     export class JavaScriptEscape implements Filter {
-        apply(str: string) {
-            str = json_encode(str);
-            return str.substr(1, str.length - 2);
+        static replacers = Pct.newAssocArray({
+            '\\': '\\\\',
+            '\r': '\\r',
+            '\n': '\\n',
+            '\f': '\\f',
+            "'": "\\'",
+            '"': "\\\"",
+            '\t': '\\t'
+        });
+
+        apply(item: any) {
+            if (!is_string(item)) return item;
+            return str_replace(array_keys(JavaScriptEscape.replacers),
+                array_values(JavaScriptEscape.replacers), <string>item);
         }
     }
 
@@ -49,7 +72,10 @@ module Dust.Filter {
             '%23': '#'
         });
 
-        apply(str: string) { return strtr(rawurlencode(str), EncodeUri.replacers); }
+        apply(item: any) {
+            if (!is_string(item)) return item;
+            return strtr(rawurlencode(<string>item), EncodeUri.replacers);
+        }
     }
 
     export class EncodeUriComponent implements Filter {
@@ -62,14 +88,17 @@ module Dust.Filter {
             '%29': ')'
         });
 
-        apply(str: string) { return strtr(rawurlencode(str), EncodeUriComponent.replacers); }
+        apply(item: any) {
+            if (!is_string(item)) return item;
+            return strtr(rawurlencode(<string>item), EncodeUriComponent.replacers);
+        }
     }
 
     export class JsonEncode implements Filter {
-        apply(str: string) { return json_encode(str); }
+        apply(item: any) { return json_encode(item); }
     }
 
     export class JsonDecode implements Filter {
-        apply(str: string) { return strval(json_decode(str)); }
+        apply(item: any) { return json_decode(item); }
     }
 }

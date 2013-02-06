@@ -3,4 +3,5 @@
 ///<reference path="dust.ts" />
 ///<reference path="evaluate.ts" />
 ///<reference path="filter.ts" />
+///<reference path="helper.ts" />
 ///<reference path="parse.ts" />

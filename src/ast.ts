@@ -12,7 +12,7 @@ module Dust.Ast {
         toString() {
             var str = '';
             if (!empty(this.parts)) {
-                this.parts.forEach((value: Part) { str += value; });
+                this.parts.forEach((value: Part) => { str += value; });
             }
             return str;
         }

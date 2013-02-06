@@ -186,6 +186,7 @@ module Dust.Parse {
                         } else break;
                     }
                 }
+                param.key = key;
                 params.push(param);
                 ctx.commitTransaction();
             }
@@ -409,7 +410,7 @@ module Dust.Parse {
             var endIndex = endQuote;
             if (Pct.isNotFalse(possibleTag) && possibleTag < endQuote) endIndex = possibleTag;
             //empty literal means no literal
-            if (endIndex == ctx.offset + 1) return null;
+            if (endIndex == ctx.offset) return null;
             var literal = new Ast.InlineLiteral(ctx.offset);
             literal.value = ctx.str.substr(ctx.offset, endIndex - ctx.offset);
             ctx.offset += literal.value.length;
