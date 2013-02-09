@@ -1,41 +1,830 @@
 <!doctype html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <title>dust-php by cretz</title>
-
-    <link rel="stylesheet" href="stylesheets/styles.css">
-    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-    <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
+  <head lang="en">
+    <title>Dust PHP</title>
+    <link href="bootstrap.min.css" rel="stylesheet" />
+    <link href="dust.css" rel="stylesheet" />
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
   </head>
   <body>
-    <div class="wrapper">
-      <header>
-        <h1>dust-php</h1>
-        <p>PHP templating based off of dustjs (incomplete)</p>
+    <div class="container">
+      <h1>Dust PHP <small>A lightweight, powerful templating engine in PHP</small></h1>
+      <hr />
+      <h3>Features</h3>
+      <dl class="dl-horizontal">
+        <dt>Browser or Server</dt>
+        <dd>Passes specification tests from LinkedIn's <a href="http://linkedin.github.com/dustjs/">Dust</a> fork.
+        <dt>Fast</dt>
+        <dd>Lightweight and profiled to parse and execute quickly with low overhead.</dd>
+        <dt>Concise</dt>
+        <dd>Short syntax for specifying partials, filters, includes, etc.</dd>
+        <dt>Hierarchical</dt>
+        <dd>Ability to nest partials, add specific replacers, override block replacements, etc.</dd>
+        <dt>Modern</dt>
+        <dd>Helpers and data can be anonymous functions or just methods. Associative arrays and objects are treated similarly.</dd>
+        <dt>Extensible</dt>
+        <dd>Everything from the parser to the helpers/filters can be customized. Codebase open and friendly.</dd>
+        <dt>Open</dt>
+        <dd>MIT licensed with all development handled on <a href="https://github.com/cretz/dust-php">GitHub</a>.</dd>
+      </dl>
 
-        <p class="view"><a href="https://github.com/cretz/dust-php">View the Project on GitHub <small>cretz/dust-php</small></a></p>
+      <h3>Overview</h3>
+      <p>
+        Dust PHP is a PHP implementation of LinkedIn's <a href="http://linkedin.github.com/dustjs/">Dust</a> (fork) template engine written in JavaScript. Dust PHP is written in <a href="http://pratphall.org">Pratphall</a>. It was built while searching for a templating language that was more powerful than mustache, concise, built in JavaScript, and contained idioms easily translatable to PHP. This is the result. It is MIT licensed. Checkout the code, submit issues, and send pull requests on the <a href="https://github.com/cretz/dust-php">GitHub page</a>. PHP 5.4 is required to use Dust PHP.
+      </p>
+      <p>The rest of this manual is based on the <a href="https://github.com/linkedin/dustjs/wiki/Dust-Tutorial">Dust tutorial</a> from LinkedIn and uses examples/text from it. It is recommended reading.</p>
+      <p>
+        Here is an example of a template, a context, and the output:
+      </p>
+      <div class="code">
+        <pre><code>{title}
+&lt;ul>
+{#names}
+  &lt;li>{name}&lt;/li>{~n}
+{/names}
+&lt;/ul></code></pre>
+      </div>
+      <ul class="nav nav-tabs" style="border-bottom: none; margin-bottom: 0px">
+        <li>All of these contexts are the same to Dust PHP:</li>
+        <li class="active"><a href="#array" data-toggle="tab" style="padding-top: 0px">Array</a></li>
+        <li><a href="#dynamicObject" data-toggle="tab" style="padding-top: 0px">Dynamic Object</a></li>
+        <li><a href="#json" data-toggle="tab" style="padding-top: 0px">JSON</a></li>
+        <li><a href="#classWithFunction" data-toggle="tab" style="padding-top: 0px">Class with Function</a></li>
+      </ul>
+      <div class="code tab-content">
+        <pre class="tab-pane active" id="array"><code data-language="php">$context = [
+    'title' => 'Famous People',
+    'names': [
+        ['name' => 'Larry'],
+        ['name' => 'Curly'],
+        ['name' => 'Moe']
+    ]
+];</code></pre>
+        <pre class="tab-pane" id="dynamicObject"><code data-language="php">$context = (object)[
+    'title' => 'Famous People',
+    'names': (object)[
+        (object)['name' => 'Larry'],
+        (object)['name' => 'Curly'],
+        (object)['name' => 'Moe']
+    ]
+];</code></pre>
+        <pre class="tab-pane" id="json"><code data-language="php">$context = json_encode('{
+    "title": "Famous People",
+    "names": [
+        { "name": "Larry" },
+        { "name": "Curly" },
+        { "name": "Moe" }
+    ]
+}');</code></pre>
+        <pre class="tab-pane" id="classWithFunction"><code data-language="php">class Name
+{
+    public $name;
 
+    public function __construct($name)
+    {
+        $this->name = $name;
+    }
+}
 
-        <ul>
-          <li><a href="https://github.com/cretz/dust-php/zipball/master">Download <strong>ZIP File</strong></a></li>
-          <li><a href="https://github.com/cretz/dust-php/tarball/master">Download <strong>TAR Ball</strong></a></li>
-          <li><a href="https://github.com/cretz/dust-php">View On <strong>GitHub</strong></a></li>
-        </ul>
-      </header>
-      <section>
-        <p>Nothing here yet</p>
-      </section>
-      <footer>
-        <p>This project is maintained by <a href="https://github.com/cretz">cretz</a></p>
-        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
-      </footer>
+class Context
+{
+    public $title = 'Famous People';
+
+    public function names()
+    {
+        return [new Name('Larry'), new Name('Curly'), new Name('Moe')];
+    }
+}
+
+$context = new Context();</code></pre>
+      </div>
+      <p>Output:</p>
+      <div class="code">
+        <pre><code>Famous People
+&lt;ul>
+  &lt;li>Larry&lt;/li>
+  &lt;li>Curly&lt;/li>
+  &lt;li>Moe&lt;/li>
+&lt;/ul></pre></code>
     </div>
-    <script src="javascripts/scale.fix.js"></script>
-    
+    <p>
+      Dust templates output plain old text and processes dust tags -- <code>{xxxxxx}</code> being a Dust tag format. The tag structure is similar to html in general form but using braces instead of &lt;>, e.g. <code>{name /}</code>, <code>{name}body inside tag{/name}</code> and with parameters <code>{name param="val1" param2="val",... }</code>.
+    </p>
+    <p>
+      The simplest form is just
+    </p>
+    <div class="code"><pre><code>{name}</code></pre></div>
+    <p>
+      and is called a key. It references a value from the data named "name". In our example, you saw the key <code>{title}</code> which produced an output value of "Famous People". The other tag form we saw in the example was
+    </p>
+    <div class="code"><pre><code>{#names}....{/names}</code></pre></div>
+    <p>
+      This is called a section.
+      <ul>
+        <li>
+          If the value is an array, it finds the "names" property from the model and iterates over 1 to n times where n is the number of array elements. In our example, we looped over the three "name" values in the model using the <code>{name}</code> key in the section body.
+        </li>
+        <li>
+          If the value exists and is a non-empty scalar or object with __toString overridden, the section outputs the value provided it is referenced in the body. Note, this is not PHP's definition of empty, see below for more information.
+        </li>
+        <li>
+          If the value exists and is a valid object that doesn't define __toString, the section outputs properties in the object if referenced by keys of the form <code>{object.propName}</code>.
+        </li>
+        <li>
+          If the value does not exist or has an empty array, nothing from the body of the section is emitted.
+        </li>
+      </ul>
+    </p>
+    <h5>More on Dust Output and Dust Filters</h5>
+    <p>
+      <ul>
+        <li>If there is no value found for a key, nothing is output</li>
+        <li>Extra whitespace is compressed by default</li>
+        <li><code>{! Comment syntax !}</code> is how you write comments</li>
+        <li>All output values are escaped to avoid Cross Site Scripting (XSS) unless you use filters:</li>
+          <ul>
+            <li>Hello <code>{name|s}</code> suppresses auto-escaping</li>
+            <li>Hello <code>{name|h}</code> force HTML escaping</li>
+            <li>Hello <code>{name|j}</code> force JavaScript escaping</li>
+            <li>Hello <code>{name|u}</code> encodes with same result as JS's encodeURI</li>
+            <li>Hello <code>{name|uc}</code> encodes with same result as JS's encodeURIComponent</li>
+            <li>Hello <code>{name|js}</code> stringify JSON literal</li>
+            <li>Hello <code>{name|jp}</code> parse JSON string to object</li>
+          </ul>
+        <li>Filters can be chained - Hello <code>{name|s|h}</code></li>
+        <li>
+          Special characters can be escaped if you need to output them: <code>{~n}</code> - newline, <code>{~r}</code> - CR, <code>{~lb}</code> - left bracket, <code>{~rb}</code> - right bracket, <code>{~s}</code> - space
+        </li>
+      </ul>
+    </p>
+
+    <h3>Usage</h3>
+    <p>
+      To install, simply require <a href="https://packagist.org/packages/dust-php/dust-php">dust-php</a> in your <a href="http://getcomposer.org">composer</a> package.json. TODO: more install info.
+    </p>
+    <p>
+      Dust has a very simple API that makes it easy to render templates. The following creates a new Dust PHP parser and renderer and runs a simple template:
+    </p>
+    <div class="code">
+        <pre><code data-language="php">//create object
+$dust = new \Dust\Dust();
+//compile a template
+$template = $dust->compile('Strings: {#strings}{.}{@sep},{/sep}{/strings}');
+//render the template
+$output = $dust->renderTemplate($template, ['strings' => ['a', 'b', 'c']]);
+//echo the output
+echo($output);</pre></code>
+    </div>
+    <p>
+      As expected, that will output <code>Strings: a,b,c</code>. You can also compile the template to a name and render it later with that name. This is helpful for partials (explained later). For example:
+    </p>
+    <div class="code">
+        <pre><code data-language="php">//create object
+$dust = new \Dust\Dust();
+//compile a template to a name
+$dust->compile('Strings: {#strings}{.}{@sep},{/sep}{/strings}', 'myTemplate');
+//render the template for that name
+$output = $dust->render('myTemplate', ['strings' => ['a', 'b', 'c']]);
+//echo the output
+echo($output);</pre></code>
+    </div>
+    <p>
+      Any exceptions that occur on compiling or rendering are extensions of <code>\Dust\DustException</code>. The Dust object contains a few public properties that can be retrieved or modified:
+      <ul>
+        <li><code>templates</code> - An associative array containing the compiled template AST's, keyed by the template name</li>
+        <li><code>filters</code> - An associative array containing all of the available filters keyed by the filter name</li>
+        <li><code>helpers</code> - An associative array containing all of the available helpers keyed by the helper name</li>
+        <li><code>automaticFilters</code> - An indexed array containing all filters the are applied by default to all text</li>
+        <li><code>parser</code> - Reference to the parser used for compiling</li>
+        <li><code>evaluator</code> - Reference to the evaluator used for rendering</li>
+      </ul>
+    </p>
+    <p>
+      All returned parsed templates may be serialized and deserialized easily with normal PHP serialization.
+    </p>
+
+    <h3>Dust Data and Referencing</h3>
+    <p>
+      Dust gets its data values from the PHP object or array used to render the template. There are main types of data: scalars, arrays, and objects. The data can also be a function but we are not considering that case here.
+    </p>
+    <p>
+      Referencing a scalar value is done with a simple key, e.g. {name}. Individual array elements can be referenced by subscripting, e.g. array[3]. Object properties or associative arrays are referenced using paths, e.g name.firstName. Of course, a path reference can be to a scalar or an array which could then be subscripted.
+    </p>
+
+    <h3>Sections</h3>
+    <p>
+      A section is a Dust tag of the form <code>{#names}...{/names}</code>. It is the way you loop over data in Dust. What happens is the current context (more on context shortly) is set to the "names" part of your data. If names is an array, the body wrapped by the section tag is executed for each element of the array. If the element is not an array, the body will just be executed once. If the "names" element does not exist or is empty, the body will be skipped.
+    </p>
+    <p>
+      During the execution of the section iteration, two variables are defined: $idx - the index of the current iteration and $len - the number of elements in the data being iterated.
+    </p>
+
+    <h3>Sections and Context</h3>
+    <p>
+      So if there are two instances of w/ a name property in my data, how does Dust decide which one to use to render <code>{name}</code>?
+    </p>
+      Dust has a concept of context to provide rules around how a value is found in the model. When you use a section reference like <code>{#name}....{/name}</code> Dust sets its context to the portion of the model identified by name. When you first start rendering, the context is set to the outermost level of the object. Thus the <code>{#names}</code> section positions the context to the block the names part, which happens to be an array. Therefore, the <code>{name}</code> key in the section body is matched against the one in the context "names".
+    </p>
+    <p>
+      Let's explore how context works with a more complex model (this is an associative array, but could be an class instance or a dynamic stdClass and it would behave the same way).
+    </p>
+    <div class="code">
+      <pre><code data-language="php">[
+   'name' => 'root',
+   'anotherName' => 'root2',
+   'A' => [
+      'name' = >'Albert',
+      'B' => [
+         'name' => 'Bob'
+      ]
+   ]
+]</code></pre>
+    </div>
+    <p>
+      As we learned earlier, if you have <code>{#A}{name}{/A}</code> the current context is A and everything under it (i.e. it includes the B stuff). The key for <code>{name}</code> will output "Albert" because that is the direct value of name in the context of "A".
+    </p>
+    <p>
+      So how does it work if you have <code>{#A}{anotherName}{/A}</code>? You will get "root2" as the output. That's because "anotherName" could not be found directly under "A" so Dust tries to walk up to the parent of "A" (which is the root context in our case) and finds "anotherName" hence using its value. In general, a simple key reference will look first in the current context and, if not found, search all higher levels up to the root looking for the name. It will not search downward into things like "B" that are nested within "A".
+    </p>
+
+    <h3>Paths</h3>
+    <p>
+      Suppose our context is the root and say we want to work with the data "only" under "B". You can use a dotted notation called a "path" to do this. For example, <code>{A.B.name}</code> will output "Bob".
+    </p>
+    <p>
+      Simple key references like <code>{A.B.name}</code> are sometimes not enough. You might need to use a section to iterate over a sub-part of the model. Remember when you use <code>{#xxxx}</code> for a section, you also establish a new context at that point. For example, in the case of <code>{#A.B}{name}{/A.B}</code>, This will output "Bob" because our context has been set to B within A. Path notation only allows you to reach down to a nested context visible within the current context.
+    </p>
+    <p>
+      You CANNOT reference a value using paths when that pathed value is outside your current context, somewhere "above" you. Lets look at an example to make this point clear.
+    </p>
+    <div class="code">
+      <pre><code>{#A.B}
+  name in B={name} name in A= {A.name}
+{/A.B}</code></pre>
+    </div>
+    <p>
+      The above will output "name in B=Bob name in A=" showing that A.name is not accessible inside the context A.B.
+    </p>
+    <p>
+      IMPORTANT: While you cannot use a dotted path notation to reference ancestor/parents from the current context, you can use a non-pathed section reference to adjust your context to a higher point. For example,
+    </p>
+    <div class="code">
+      <pre><code>{#A.B} name in B={name}
+ {#A}
+   name in A: {name}
+ {/A}
+{/A.B}</code></pre>
+    </div>
+    <p>
+      After <code>{#A.B}</code> our context is "B" and since we set the context by a path, we cannot reach up to <code>{A.name}</code>. However, <code>{#A}</code>, a non-pathed reference, is allowed to search upward and find "A". Then <code>{#A}</code> sets a new context to "A" allowing us to reference the name value under "A". When the closing tag <code>{/A}</code> is reached, the context reverts to <code>{#A.B}</code>, In essence, the context acts like a stack.
+    </p>
+    <p>
+      Another way to reference a value outside your current context is to pass the value into the section as an inline parameter (we will talk more about parameters soon). Here is an example of how to access A.name within the <code>{#A.B}</code> context using a parameter on the <code>{#A.B}</code> section
+    </p>
+    <div class="code">
+      <pre><code>{#A.B param=A.name}
+  name in B={name} name in A: {param}
+{/A.B}</code></pre>
+    </div>
+
+    <h3>Explicit Context Setting</h3>
+    <p>
+      Normally the visibility of data from the model is controlled by your current context set by the # tag, or by inline parameters, plus the ability to access values by the key reference <code>{name}</code> and to reset the current context based on a #section reference to outer block using <code>{#outerBlock}</code>.
+    </p>
+    <p>
+      There is another way to control and limit visibility for a block of code. The notation
+    </p>
+    <div class="code">
+      <pre><code>{#name:name2}.... {/name}</code></pre>
+    </div>
+    <p>
+      will do that.
+    </p>
+    <p>
+      Specifically it does the folllowing:
+      <ul>
+        <li>Hides all nested context levels above "name"</li>
+        <li>Puts "name2" data as the parent context and name as the current context</li>
+      </ul>
+    </p>
+    <p>
+      This prevents <code>{key}</code> references from accessing any data not in the name or name2 contexts. No further reaching up can happen even with simple key forms like <code>{name}</code>. This scope limitation might be useful for data hiding from components. Another use for it could be to make only the current context and it's peer available.
+    </p>
+    <p>
+      Given a data model where A and B are peers and we need to iterate over A and also reference data from B, without explicit context setting we would have trouble doing this. Remember, this could be an object but is just shown here as an associative array.
+    </p>
+    <div class="code">
+      <pre><code data-language="php">[
+    'A' => [
+        'names' => ['Albert', 'Alan']
+    ],
+    'A2' => [
+        'type' => 'Student'
+    ]
+]</code></pre>
+    </div>
+    <p>
+      However, the following:
+    </p>
+    <div class="code">
+      <pre><code>{#A:A2} {#names}{.} - {type} {/name} {/A}</code></pre>
+    </div>
+    <p>
+      will output "Albert - Student Alan - Student" since both A and A2 are on the context stack even though A2 would not normally be there.
+    </p>
+
+    <h3>Sections with Parameters</h3>
+    <p>
+      Since we just dropped a teaser about parameters, let's look at them. Section tags allow you to pass parameters into the section for subsequent use. Parameter values can be simple string constants or the name of a value from the data model. For example, using the same data model as earlier:
+    </p>
+    <div class="code">
+      <pre><code>{#A.B foo="Hi" bar=" Good to see you"}
+    {foo} {name} {bar}
+{/A.B}</code></pre>
+    </div>
+    <p>
+      This will output "Hi Bob Good to see you"
+    </p>
+    <p>
+      As we saw earlier, values from the data model can also be passed. Consider
+    </p>
+    <div class="code">
+      <pre><code>{#A.B foo=A.name bar=anotherName}
+    {foo} {name} {bar}
+{/A.B}</code></pre>
+    </div>
+    <p>
+      This will output "Albert Bob root2". It's important to understand the context at the point the parameter values are established. With foo=A.name above, A.name is evaluated before the context is moved to A.B, thus A.name is accessible.
+    </p>
+    <p>
+      However, if the parameter values are interpolated into strings, they are evaluated in the context of the section using them. Therefore, the following will just output "B root2" because <code>{A.name}</code> is not accessible from the <code>{#A.B}</code> context.
+    </p>
+    <div class="code">
+      <pre><code>{#A.B foo="{A.name}" bar="{anotherName}" }
+    {foo} {name} {bar}
+{/A.B}</code></pre>
+    </div>
+    <p>
+      While you can specify an object as a parameter, e.g.
+    </p>
+    <div class="code">
+      <pre><code>{#A.B foo=A }
+    {foo.name}
+{/A.B}</code></pre>
+    </div>
+    <p>
+      you cannot do anything useful with it since the <code>{foo.name}</code> reference is going to look for foo in the current context but that context is the element of the current iteration of the section #A.B (in this case just the name: "Bob", value). Therefore, "foo" won't be found. The foo parameter is on the context stack but one level higher than the current element iteration so unreachable by a path reference.
+    </p>
+    <p>
+      When deciding on parameter names, try to be unique. Inline parameters will not override the current context if a property of the same name exists. Let's look at an example:
+    </p>
+    <div class="code">
+      <pre><code>{#A name="Not Albert"}
+  name is {name}.
+{/A}</code></pre>
+    </div>
+    <p>
+      will output "name is Albert" since preference goes to data in the current context followed by inline parameters then up the context tree.
+    </p>
+    <p>
+      If we want to be sure we get the value in the parameter we can make it unique.
+    </p>
+    <div class="code">
+      <pre><code>{#A paramName="Not Albert"}
+  name is {paramName} and {B.name} is still Bob.
+{/A}</code></pre>
+    </div>
+    <p>
+      will output "name is Not Albert and Bob is still Bob".
+    </p>
+
+    <h3>Logic in Templates</h3>
+    <p>
+      Templates with logic versus "logic-less" templates is a hotly debated point among template language designer and users. Dust straddles the divide by adopting a "less logic" stance. We all know that real business logic does not belong in the presentation layer, but what about simple presentation-oriented things like coloring alternate rows in table or marking the selected option in a &lt;select> dropdown? It seems equally wrong to ask the controller/business logic code to compute these down to simple booleans in order to reduce the logic in the presentation template. This route just lead to polluting the business layer code with presentation-oriented logic.
+    </p>
+    <p>
+      Dust provides some simple logic mechanisms and trusts you to be sensible in minimizing the logic in your templates to only deal with presentation-oriented decisions. That said, let's take a look at the ways Dust let's you have logic.
+    </p>
+    <p>
+      There are two other special section notations that provide conditional testing:
+      <ul>
+        <li>
+          <code>{?name} body {/name}</code><br />
+          not only tests the *existence* of name in the current context, but also evaluates the value of name in the model. If name is "true" (see below for what true means), the body is processed.
+        </li>
+        <li>
+          <code>{^name} body {/name}</code><br />
+          not only tests the *non-existence* of name in the current context, but also evaluates the value of name in the model. If name is not true (see below for what true means), the body is processed.
+        </li>
+      </ul>
+    </p>
+    <p>
+      Note that the value of name is evaluated as follows: "" or ' ' will evaluate to false, boolean false, null, or undefined will evaluate to false, numeric 0 evaluates to true, so does, string "0", string "null", string "undefined" and string "false". Also note that empty array (i.e. []) is evaluated to false and empty object and non-empty object are evaluated to true.
+    </p>
+    <p>
+      Here is an example of doing something special when the array is empty.
+    </p>
+    <p>
+      Template:
+    </p>
+    <div class="code">
+      <pre><code>&lt;ul>
+{#friends}
+  &lt;li>{name}, {age}{~n}&lt;/li>
+{:else}
+  &lt;p>You have no friends!&lt;/p>
+{/friends}
+&lt;/ul></code></pre>
+    </div>
+    <p>
+      PHP (remember, could be objects instead of associative arrays):
+    </p>
+    <div class="code">
+      <pre><code data-language="php">[
+    'friends' => [
+        [ 'name' => 'Moe', 'age' => 37 ],
+        [ 'name' => 'Larry', 'age' => 39 ],
+        [ 'name' => 'Curly', 'age' => 35 ]
+    ]
+]</code></pre>
+    </div>
+    <p>
+      This renders html as expected:
+    </p>
+    <div class="code">
+      <pre><code>&lt;ul>
+  &lt;li>Moe, 37&lt;/li>
+  &lt;li>Larry, 39&lt;/li>
+  &lt;li>Curly, 35&lt;/li>
+&lt;/ul></code></pre>
+    </div>
+    <p>
+      If we change the friends array to be empty, the <code>{:else}</code> block is triggered
+    </p>
+    <div class="code">
+      <pre><code data-language="php">[
+    'friends' => []
+]</code></pre>
+    </div>
+    <p>
+      In the original dust, it does not trigger the <code>{:else}</code> block. LinkedIn's version fixed it, to keep # and ? consistent
+    </p>
+    <p>
+      Take special care if you are trying to pass a boolean parameter. param=true and param=false do not pass true/false as you might expect. They are treated as references to variables named "true" and "false". Unlike PHP, they are not reserved names. Note that they are not reserved in property names either so you can have a property named true or false. So you might think to pass 0 and 1 to your boolean-like parameter. That won't work either. Dust's boolean testing (i.e. <code>{?xxx}</code>) is more of an existence test than a boolean test. Therefore, with param=1 and param=0 both value exists and so are considered true. Your best bet is to pass 1 and "", e.g. param=1 or param="". You could also leave off param="" if you are sure the name is not elsewhere in your data and accessible.
+    </p>
+
+    <h3>Partials</h3>
+    <p>
+      A Dust template named "xxx" is authored in a file named xxx.dust. You can have multiple .dust files and reference one Dust template as part of another one. This is the basis for "components" or reusable templates for tasks like a common header and footer on multiple pages.
+    </p>
+    <p>
+      Let's peek under the covers to see how the Dust template rendering knows about a template. As we said earlier, Dust templates are compiled to serialize PHP AST objects. Part of that compiled result is a call to $dust->register(name, template). The register call associates a template name with the function to run that template. So consider this example of how partials might be used:
+    </p>
+    <div class="code">
+      <pre><code>{>header /}
+  ... template for the body of the page...
+{>footer  /}</code></pre>
+    </div>
+    <p>
+      As long as the objects for the header.dust and footer.dust templates are loaded and registered prior to executing this template, it will run the header template, then its own body view and finally the footer template.
+    </p>
+    <p>
+      The partial reference syntax <code>{>name /}</code> also supports paths so you can have a template at a path like "shared/header.dust" and reference it as <code>{>"shared/header" /}</code>. This allows partials to be organized into library-like structures using folders.
+    </p>
+    <p>
+      Like sections, partials accept parameters so you can build reusable components that are parameterizable easily. This gives you the same foundation for building libraries as other languages. By passing all the data into the partial using parameters, you isolate the partial from any dependence on the context when it is invoked. So you might have things like <code>{>header mode="classic" /}</code> to control the header behavior.
+    </p>
+    <p>
+      Just like in sections, inline parameters will not override the current context if a property of the same name exists. For example, if the current context already has name = "Albert" adding name as a parameter will not override the value when used inside the partial foo.
+    </p>
+    <div class="code">
+      <pre><code>{>foo name="will not override Albert"/}</code></pre>
+    </div>
+    <p>
+      Another caution: if you use parameters to pass a context like:
+    </p>
+    <div class="code">
+      <pre><code data-language="php">[
+    'homeAddress' => [
+        'street' => '1 Main St',
+        'city' => 'Anytown'
+    ]
+]</code></pre>
+    </div>
+    <div class="code">
+      <pre><code>{>displayAddress address=homeAddress /}</code></pre>
+    </div>
+    <p>
+      then you will not be able to reference <code>{address.street}</code> or <code>{address.city}</code> in the body of the partial. These get treated as a path reference and the params are higher in the context stack at the point of reference so cannot be found. You need to code such things as:
+    </p>
+    <div class="code">
+      <pre><code>{#address}
+  {street} {city}
+{/address}</code></pre>
+    </div>
+    <h5>Dynamic Partials for Logic</h5>
+    <p>
+      Note that you can also use dynamic partials, that conditionally select the partial to render based on the value in the data.
+    </p>
+    <div class="code">
+      <pre><code>{>"flowViews/flowView{flowName}" /}</code></pre>
+    </div>
+    <p>
+      This sort of usage might suit a case where you have a multi-page flow and the controller could pass "page1", "page2",... in the data model to dynamically choose which partial to use to implement the view.
+    </p>
+
+    <h3>Helpers</h3>
+    <h5>Logic Helpers</h5>
+    <strong><code>{@select key="xxx"}</code> + <code>@eq</code>, <code>@lt</code>, <code>@lte</code>, <code>@gt</code>, <code>@gte</code>, <code>@default</code></strong>
+    <p>
+      Select provides a key value that can be tested within its scope to output desired values. It mimics the switch/case statement. Here are some examples:
+    </p>
+    <div class="code">
+      <pre><code>{@select key=\"{foo}\"}
+  {@eq value=\"bar\"}foobar{/eq}
+  {@eq value=\"baz\"}foobaz{/eq}
+  {@default} - default Text{/default}
+{/select}</code></pre>
+    </div>
+    <div class="code">
+      <pre><code>{@select key=foo}
+  {@gte value=5}foobar{/gte}
+{/select}</code></pre>
+    </div>
+    <p>
+      Each test condition is executed and if true, the body is output and all subsequent condtions are skipped. If no test condition has been met and a <code>@default</code> is encountered, it will be executed and the select process terminates.
+    </p>
+    <p>
+      The <code>@eq</code> (for example) can be used without a <code>{@select}</code>.The most common pattern of usage would be for an HTML &lt;select>/&lt;option> list to mark the selected element with a "selected" attribute. The code for that looks like this where <code>{#options}</code> is an array of options from the data model. Here the key is directly on the eq rather than on the select helper.
+    </p>
+    <div class="code">
+      <pre><code>&lt;select name="courses">
+  {#options}
+    &lt;option value="{value}"{@eq key=value value=courseName}  selected="true"{/eq} >{label}&lt;/option>
+  {/options}
+&lt;/select></code></pre>
+    </div>
+    <p>
+      Similarly, <code>{@lt}</code>, <code>{@gt}</code>, <code>{@lte}</code>, <code>{@gte}</code> can be used standalone and allow nesting. The following is a valid example
+    </p>
+    <div class="code">
+      <pre><code>{@eq key="CS201 value=courseName}
+  {@eq key="CS101" value=prereq}
+    print it is CS201 course and has CS 101 as prereq
+  {/eq}
+{/eq}</code></pre>
+    </div>
+    <strong><code>{@math}</code> - math helper</strong>
+    <p>
+      The math helper provides simple computational capabilities. Operations supported are: add, subtract, multiply, divide, mod,abs, floor, and ceil. The general syntax is:
+    </p>
+    <div class="code">
+      <pre><code>{@math key="operand1" method="mathOpName" operand="operand2" /}</code></pre>
+    </div>
+    <p>
+      The helper computes a result using the key, method, and operand values. Some examples will clarify:
+    </p>
+    <div class="code">
+      <pre><code>{@math key="16" method="add" operand="4"/}  - Result will be 20
+{@math key="16.5" method="floor"/} - Result will be 16
+{@math key="16.5" method="ceil"/} - Result will be 17
+{@math key="-8" method="abs"/} - Result will be 8
+{@math key="{$idx}" method="mod" operand="2"/} - Return 0 or 1 according to $idx value</code></pre>
+    </div>
+    <strong><code>@math</code> with bodies</strong>
+    <p>
+      Sometimes you need to choose something to output based on the result of a math helper computation. For example, if the table row number is odd, you want to give it a gray background.
+    </p>
+    <div class="code">
+      <pre><code>{@math key="{$idx}"" method="mod" operand="2"}
+  {@eq value=0}
+      show if $idx mod 2 == 0
+  {:else}
+      show if $idx mod 2 != 0
+  {/eq}
+{/math}</code></pre>
+    </div>
+    <p>
+      The above evaluates the mod with the given key and operand i.e $idx % 2 and then checks if the output is 0, and prints the block inside the <code>@eq</code> helper, if not the else block. Be careful to use numeric values for tests and not strings, e.g. <code>{eq value="0"}</code> will never be true.
+    </p>
+    <p>
+      Another example
+    </p>
+    <div class="code">
+      <pre><code>{@math key="13" method="add" operand="12"}
+  {@gt value=123}
+    13 + 12 > 123
+  {/gt}
+  {@default}
+    Math is fun
+  {/default}
+{/math}</code></pre>
+    </div>
+    <p>
+      Using the nested <code>@eq</code>, <code>@lt</code>, etc. syntax allows you to output values like a select/case similar to the select helper.
+    </p>
+    <strong><code>{@if cond="condition"}</code> - if helper</strong>
+    <p>
+      There are a few cases where a simple true/false or exists/non-exists or single eq or lt or gt test won't suffice. For those, there is the if helper.
+      WARNING: this helper is dangerous and disabled by default in Dust PHP since it uses eval. To turn it on, run <code data-language="php">$dust['if'] = new \Dust\Helper\IfHelper();</code>.
+    </p>
+    <p>
+      Some examples
+    </p>
+    <div class="code">
+      <pre><code>{@if cond="{x} &lt; {y} &amp;&amp; {b} == {c} &amp;&amp; '{e}'.length || '{f}'.length"}
+  &lt;div> x is less than y and b == c and either e or f exists in the output &lt;/div>
+{/if}</code></pre>
+    </div>
+    <div class="code">
+      <pre><code>{@if cond="({x} &lt; {y}) || ({x} &lt; 3)"} &lt;div> x&lt;y and x&lt;3 &lt;/div> {/if}</code></pre>
+    </div>
+    <div class="code">
+      <pre><code>{@if cond="{x} &lt; {y} &amp;&amp; {b} == {c} &amp;&amp; '{e}'.length || '{f}'.length "}
+  &lt;div>  x is less than y and b == c and either e or f exists in the output &lt;/div>
+{:else}
+  &lt;div> x is >= y &lt;/div>
+{/if}</code></pre>
+    </div>
+    <p>
+      Caveat #1: In the above example, if there is a possibility of undefined or false value for the <code>{x}</code> or <code>{y}</code> in the data, the correct syntax would be to check it exists and then check for <code>{x} > {y}</code>. This is a known limitation since, <code>{x}</code> returns nothing when the value of x is undefined or false and thus results in invalid PHP condition in the if helper.
+    </p>
+    <div class="code">
+      <pre><code>{@if cond="'{x}'.length &amp;&amp; '{y}.length &amp;&amp; {x} &lt; {y} &amp;&amp; {b} == {c} &amp;&amp; '{e}'.length > 0 || '{f}'.length > 0 "}
+  &lt;div> x is less than y and b == c and either e or f exists in the output &lt;/div>
+{/if}</code></pre>
+    </div>
+    <p>
+      Caveat #2: The if helper internally uses PHP eval, for complex expression evaluation. Excessive usage of if may lead to sub-optimal performance with rendering, since eval is known to be slow.
+    </p>
+    <h5>Other Helpers</h5>
+    <strong><code>{@sep}</code> - separator helper</strong>
+    <p>
+      When outputting lists of things, you often need to do something different for the last iteration. Consider the case
+    </p>
+    <div class="code">
+      <pre><code>My friends are:
+{#friends}
+  {name},
+{/friends}</code></pre>
+    </div>
+    <p>
+      As written this will produce Hurley,Kate,Sawyer,Desmond, leading to the "dangling comma problem". This can be fixed by using the <code>{@sep}</code> helper tag as follows:
+    </p>
+    <div class="code">
+      <pre><code>My friends are:
+{#friends}
+  {name}{@sep},{/sep}
+{/friends}</code></pre>
+    </div>
+    <p>
+      The <code>{@sep}</code> helper tag will output it's body content unless this is the final iteration of the containing loop.
+    </p>
+    <strong><code>{@size key="xxx"}</code> - size helper</strong>
+    <p>
+      The size helper computes the size of the key parameter. The size computed depends on the type of the subject parameter as follows:
+      <ul>
+        <li>Array - number of elements, [1,2,3,4] has size=4</li>
+        <li>String - length of the string, "abcdef" has size=6</li>
+        <li>Object - Number of properties in the object</li>
+        <li>Number - Value of the number, 23 has size 23 and 3.14 has size 3.14</li>
+        <li>Undefined, 0, empty string - zero</li>
+        <li>Any other value - length after conversion to string</li>
+      </ul>
+    </p>
+    <strong><code>{@contextDump key="current|full" to="output|console"}</code> - contextDump helper</strong>
+    <p>
+      The contextDump helper outputs the current context portion of the data model to the output stream using <code>print_r</code>. This can help with debugging if you suspect the context data is not as expected or you aren't sure what the current context is. If you want to change the defaults of key="current" and to="output", use the parameters. Remove this tag when done debugging.
+    </p>
+
+    <h3>Blocks and Inline Partials</h3>
+    <p>
+      An important need in developing a multi-page web application is to have common elements of the pages defined just once and shared by all pages (Don't Repeat Yourself). Dust provides this with the concept of blocks. Consider a common case where several pages share a header and footer but have different body content.
+    </p>
+    <p>
+      Blocks in the base template can contain default content and a child template can override that content. A block tag has the form <code>{+name}default content{/name}</code>. In the following example, the base template has three blocks: pageHeader, bodyContent, and pageFooter. The pageHeader and pageFooter have default content that is shown if the child template does not override them.
+    </p>
+    <strong>Base template</strong>
+    <div class="code">
+      <pre><code>&lt;div class="page">
+&lt;h1>{+pageHeader}PayPal{/pageHeader}&lt;/h>
+  &lt;div class="bodyContent">
+    {+bodyContent/}
+  &lt;/div>
+  &lt;div class="footer">
+    {+pageFooter}
+       &lt;hr>
+       &lt;a href="/contactUs">Contact Us&lt;/a>
+    {/pageFooter}
+  &lt;/div>
+&lt;/div></code></pre>
+    </div>
+    <p>
+      Now that we have defined a base template with named blocks pageHeader, bodyContent, and pageFooter, let's look at how a child template can use it to supply body content and override the pageFooter. First, you insert the base template as a partial. Then you use one or more "inline partials" defining the values for the named blocks in the template.
+    </p>
+    <strong>Child template</strong>
+    <div class="code">
+      <pre><code>{! First, insert the base template as a partial !}
+{>"shared/base_template"/}
+
+{! Then populate the base template named blocks. Supply the desired bodyContent and pageFooter !}
+{&lt;bodyContent}
+&lt;p>These are your current settings:&lt;/p>
+&lt;ul>
+  &lt;li>xxxx&lt;/li>
+  &lt;li>yyy&lt;/li>
+&lt;/ul>
+{/bodyContent}
+{&lt;pageFooter}
+       &lt;hr>
+       &lt;a href="/contactUs">About Us&lt;/a> |
+       &lt;a href="/contactUs">Contact Us&lt;/a>
+{/pageFooter}</code></pre>
+    </div>
+    <p>
+      Note that inline partials like <code>{&lt;name}xxx{/name}</code> define "name" globally within the template. While this might be useful, remember the pains caused by global variables and use these with the knowledge that others can stomp on your chosen name inadvertently.
+    </p>
+
+    <h3>Dust Under the Covers</h3>
+    <h5>Writing a helper</h5>
+    <p>
+      Dust helpers are PHP <a href="http://php.net/manual/en/language.types.callable.php">callable</a> registered with the <code>$dust->helpers</code> array with the name as the index. Thus the general form of a helper is (using an anonymous function):
+    </p>
+    <div class="code">
+      <pre><code data-language="php">
+$dust->helpers['myHelper'] = function ($chunk, $context, $bodies, $params) {
+    //code of the helper
+}</code></pre>
+    </div>
+    <p>
+      All parameters definitions are optional and can be type hinted. As far as the parameters go:
+      <ul>
+        <li>
+          <code>$chunk</code> is the currently accumulating output of the template render process. You will most likely contribute additional output as part of your helper. This is an instance of <code>Dust\Evaluate\Chunk</code>.
+        </li>
+        <li>
+          <code>$context</code> is the current context stack (e.g that which changes when you do things like <code>{#list}</code>). This is an instance of <code>Dust\Evaluate\Context</code>.
+        <li>
+          <code>$bodies</code> holds any body sections nested within the helper. For example, the <code>{:else}</code> body. This is an instance of <code>Dust\Evaluate\Bodies</code>.
+        </li>
+        <li>
+          <code>$params</code> is an object that holds all the parameters used when calling the custom helper. This is an instance of <code>Dust\Evaluate\Parameters</code>.
+        </li>
+      </ul>
+    </p>
+    <p>
+      Here is a sample custom helper that implements a substring capability.
+    </p>
+    <div class="code">
+      <pre><code>{@substr str="xxx" begin="x" end="y" len="z" /}</code></pre>
+    </div>
+    <p>
+      <ul>
+        <li>begin is optional, zero if omitted</li>
+        <li>end and len are choices with len taking priority if the user supplies both</li>
+        <li>If len is present, substr(str, begin, len) is used for the result</li>
+        <li>If end is present, substr(str, begin, end - begin) is used for the result</li>
+        <li>If end and len are both missing then you get the whole string back</li>
+      </ul>
+    </p>
+    <p>
+      The annotated code to implement it is:
+    </p>
+    <div class="code">
+      <pre><code data-language="php">$dust->helpers['substr'] = function ($chunk, $ctx, $bodies, $params) {
+    //make sure str is present
+    if (!isset($params['str'])) return $chunk->setError('Parameter required: str');
+    //parse parameters
+    $str = $params['str'];
+    $begin = isset($params['begin']) ? $params['begin'] : 0;
+    $end = isset($params['end']) ? $params['end'] : null;
+    $len = isset($params['len']) ? $params['len'] : null;
+    //if len is set, use it instead of end
+    if ($len !== null) {
+        return $chunk->write(substr($str, $begin, $length));
+    } elseif ($end !== null) {
+        return $chunk->write(substr($str, $begin, $begin - $end));
+    } else {
+        return $chunk->write($str);
+    }
+};</code></pre>
+    </div>
+    <p>
+      Note, this example may not do the level of runtime validation you might want to if distributing your helper. If you need to work with the body of the helper, then the following will get it for you.
+    </p>
+    <div class="code">
+      <pre><code data-language="php">$body = $bodies->block;</code></pre>
+    </div>
+    <p>
+      To evaluate the body, you call <code data-language="php">$chunk->render($body, $context);</code>. There are other parameters if you intend to emulate a looping structure like a section letting you define $idx and $len.
+    </p>
+    <p>
+      <code>$context</code> is the Dust context stack. Normally you will just use the Dust <code>get</code> method when retrieving values from the context stack. If you need a deeper knowledge, take a look at the code for Dust\Evaluate\Context::get
+    </p>
+
+
+    <script src="jquery.min.js"></script>
+    <script src="bootstrap.min.js"></script>
+    <script src="rainbow-custom.min.js"></script>
   </body>
 </html>
