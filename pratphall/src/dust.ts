@@ -64,10 +64,10 @@ module Dust {
         }
 
         /**
-         * Load a template from a name or throw error if not found
+         * Load a template from a name or return false if not found
          */
         loadTemplate(name: string) {
-            if (!isset(this.templates[name])) throw new DustException('Template not found');
+            if (!isset(this.templates[name])) return false;
             return this.templates[name];
         }
 

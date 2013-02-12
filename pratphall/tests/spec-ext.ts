@@ -1,9 +1,14 @@
-///<reference path='../node_modules/pratphall/src/pratphall.ts' />
+///<reference path='../../node_modules/pratphall/src/pratphall.ts' />
 
 //this extension PHP-ifies the spec tests
 module Dust.Extension {
 
     //import the existing spec
+
+    interface SpecTestSuite {
+        name: string;
+        tests: SpecTest[];
+    }
 
     interface SpecTest {
         name: string;
@@ -18,13 +23,18 @@ module Dust.Extension {
 
     import TS = TypeScript;
     var io = Pratphall.loadIo();
-    var tests = <SpecTest[]>require(io.joinPaths(
+    var testSuites = <SpecTestSuite[]>require(io.joinPaths(
         io.cwd(), './node_modules/dustjs-linkedin/test/jasmine-test/spec/coreTests.js'));
+    //loop through suites and make a single test list
+    var tests: SpecTest[] = [];
+    testSuites.forEach((value: SpecTestSuite) => {
+        tests = tests.concat(value.tests);
+    });
 
     //we have to ignore certain JS-only tests
     var ignored = [
         //uses set timeout
-        'intro',
+        'Try me',
         //async
         'async_key',
         //pragmas not supported atm (hard to find concrete definition)
@@ -69,7 +79,7 @@ module Dust.Extension {
                 if (ignored.indexOf(test.name) != -1) return;
                 //make a function name from the name
                 var funcName = getProperFuncName(test.name);
-                //if (funcName != 'testTestThatTheScopeOfTheFunctionIsCorrectAndThatANonchunkReturnValueIsUsedForTruthinessChecks') return;
+                //if (funcName != 'testUsingIdxInArrayReferenceAccessing') return;
                 //add func and script
                 funcNames.push(funcName);
                 //build up dependencies from partials

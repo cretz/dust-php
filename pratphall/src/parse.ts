@@ -355,10 +355,10 @@ module Dust.Parse {
             var buffer = new Ast.Buffer(ctx.offset);
             buffer.contents = line;
             ctx.offset += line.length;
-            //we ended at eol? then skip it and whitespace
+            //we ended at eol? then skip it but add it
             if (ctx.peek() == '\n') {
                 ctx.offset++;
-                ctx.skipWhitespace();
+                buffer.contents += '\n';
             }
             return buffer;
         }

@@ -1,8 +1,10 @@
 /dust-php.csproj
 /dust-php.csproj.user
 /node_modules
+/vendor
 /obj
 /bin
 *.js
 *.js.map
 /build
+/composer.lock

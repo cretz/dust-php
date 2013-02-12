@@ -18,28 +18,19 @@ function copyAll(pairs, onComplete) {
 
 desc('Build');
 task('build', {async: true}, function () {
-    //recreate build dir
-    console.log('Recreating build directory');
-    //fs.removeSync('build');
-    fs.mkdirsSync('build/src');
-    fs.mkdirsSync('build/tests');
-
     //compile
     console.log('Compiling with Pratphall');
     var cmds = [
         //regular src
-        'node ./node_modules/pratphall/bin/ppc.js --no-php-lib -o ./build/src ./src/common.ts',
+        'node ./node_modules/pratphall/bin/ppc.js --no-php-lib -o ./src ./pratphall/src/common.ts',
         //test src
-        'node ./node_modules/pratphall/bin/ppc.js --no-php-lib --exclude-outside --ext tests/spec-ext.ts -o ./build/tests ./tests/common.ts'
+        'node ./node_modules/pratphall/bin/ppc.js --no-php-lib --exclude-outside --ext pratphall/tests/spec-ext.ts -o ./tests ./pratphall/tests/common.ts'
     ];
     jake.exec(cmds, function () {
         //copy other files
         console.log('Copying support files');
         copyAll([
-            {src: 'LICENSE', dest: 'build/LICENSE'},
-            {src: 'README.md', dest: 'build/README.md'},
-            {src: 'composer.json', dest: 'build/composer.json'},
-            {src: 'tests/phpunit.xml', dest: 'build/tests/phpunit.xml'}
+            {src: 'pratphall/tests/phpunit.xml', dest: 'tests/phpunit.xml'}
         ], complete);
     }, {printStdout: true, printStderr: true});
 });

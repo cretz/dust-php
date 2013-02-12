@@ -25,7 +25,7 @@ module Dust.Evaluate {
         }
 
         evaluate(source: Ast.Body, state: any) {
-            return this.evaluateBody(source, new Context(null, new State(state)), new Chunk(this)).out;
+            return trim(this.evaluateBody(source, new Context(null, new State(state)), new Chunk(this)).out);
         }
 
         evaluateBody(body: Ast.Body, ctx: Context, chunk: Chunk) {
@@ -446,9 +446,9 @@ module Dust.Evaluate {
             return new Context(this, head);
         }
 
-        resolve(identifier: Ast.Identifier, forceArrayLookup = false) {
+        resolve(identifier: Ast.Identifier, forceArrayLookup = false, mainValue = this.head.value) {
             //try local
-            var resolved = this.resolveLocal(identifier, this.head.value);
+            var resolved = this.resolveLocal(identifier, mainValue, forceArrayLookup);
             //forced local?
             if (identifier.preDot) return resolved;
             //if it's not there, we can try the forced parent
@@ -470,7 +470,11 @@ module Dust.Evaluate {
         resolveLocal(identifier: Ast.Identifier, parentObject: any, forceArrayLookup = false) {
             var key: any = null;
             if (identifier.key != null) key = identifier.key;
-            else if (identifier.number != null) key = intval(identifier.number);
+            else if (identifier.number != null) {
+                key = intval(identifier.number);
+                //if this isn't an array lookup, just return the number
+                if (!forceArrayLookup) return key;
+            }
             var result = null;
             //no key, no array, but predot means result is just the parent
             if (key === null && identifier.preDot && identifier.arrayAccess == null) {
@@ -482,8 +486,16 @@ module Dust.Evaluate {
             if (result === null && key !== null) result = this.findInArrayAccess(key, parentObject);
             //if it's there (or has predot) and has array access, try to get array child
             if (identifier.arrayAccess != null) {
-                if (result !== null) result = this.resolveLocal(identifier.arrayAccess, result, true);
-                else if (identifier.preDot) result = this.resolveLocal(identifier.arrayAccess, parentObject, true);
+                //find the key
+                var arrayKey = this.resolve(identifier.arrayAccess, false, parentObject);
+                if (arrayKey !== null) {
+                    var keyIdent = new Ast.Identifier(-1);
+                    if (is_numeric(arrayKey)) keyIdent.number = strval(arrayKey);
+                    else keyIdent.key = Pct.castString(arrayKey);
+                    //lookup by array key
+                    if (result !== null) result = this.resolveLocal(keyIdent, result, true);
+                    else if (identifier.preDot) result = this.resolveLocal(keyIdent, parentObject, true);
+                }
             }
             //if it's there and has next, use it
             if (result !== null && identifier.next && !is_callable(result)) {
