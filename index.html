@@ -9,6 +9,8 @@
   <body>
     <div class="container">
       <h1>Dust PHP <small>A lightweight, powerful templating engine in PHP</small></h1>
+      <iframe src="http://ghbtns.com/github-btn.html?user=cretz&repo=dust-php&type=watch"
+  allowtransparency="true" frameborder="0" scrolling="0" width="110" height="20" style="float: right"></iframe>
       <hr />
       <h3>Features</h3>
       <dl class="dl-horizontal">
@@ -62,7 +64,7 @@
 ];</code></pre>
         <pre class="tab-pane" id="dynamicObject"><code data-language="php">$context = (object)[
     'title' => 'Famous People',
-    'names': (object)[
+    'names': [
         (object)['name' => 'Larry'],
         (object)['name' => 'Curly'],
         (object)['name' => 'Moe']
@@ -189,6 +191,19 @@ $output = $dust->render('myTemplate', ['strings' => ['a', 'b', 'c']]);
 echo($output);</pre></code>
     </div>
     <p>
+      Compiling a file will allow you to reference other files as partials aand blocks relative to the directory of the file:
+    </p>
+    <div class="code">
+        <pre><code data-language="php">//create object
+$dust = new \Dust\Dust();
+//compile a template to a name
+$dust->compileFile('templates/myTemplate.dust');
+//render the template for that name
+$output = $dust->render('templates/myTemplate', ['strings' => ['a', 'b', 'c']]);
+//echo the output
+echo($output);</pre></code>
+    </div>
+    <p>
       Any exceptions that occur on compiling or rendering are extensions of <code>\Dust\DustException</code>. The Dust object contains a few public properties that can be retrieved or modified:
       <ul>
         <li><code>templates</code> - An associative array containing the compiled template AST's, keyed by the template name</li>
@@ -197,6 +212,8 @@ echo($output);</pre></code>
         <li><code>automaticFilters</code> - An indexed array containing all filters the are applied by default to all text</li>
         <li><code>parser</code> - Reference to the parser used for compiling</li>
         <li><code>evaluator</code> - Reference to the evaluator used for rendering</li>
+        <li><code>includedDirectories</code> - An ordered, indexed array of directories to load partials/blocks from (default empty)</li>
+        <li><code>autoloaderOverride</code> - An optional overload that should be a callable accepting a string and returning an AST or null</li>
       </ul>
     </p>
     <p>
@@ -216,7 +233,7 @@ echo($output);</pre></code>
       A section is a Dust tag of the form <code>{#names}...{/names}</code>. It is the way you loop over data in Dust. What happens is the current context (more on context shortly) is set to the "names" part of your data. If names is an array, the body wrapped by the section tag is executed for each element of the array. If the element is not an array, the body will just be executed once. If the "names" element does not exist or is empty, the body will be skipped.
     </p>
     <p>
-      During the execution of the section iteration, two variables are defined: $idx - the index of the current iteration and $len - the number of elements in the data being iterated.
+      During the execution of the section iteration, three variables are defined: $idx - the index of the current iteration, $len - the number of elements in the data being iterated, and $iter - the current number of values in to the iteration. For numerical arrays, $idx and $iter will be the same, but for associative arrays $idx is the key whereas $iter is the position.
     </p>
 
     <h3>Sections and Context</h3>
@@ -233,7 +250,7 @@ echo($output);</pre></code>
    'name' => 'root',
    'anotherName' => 'root2',
    'A' => [
-      'name' = >'Albert',
+      'name' => 'Albert',
       'B' => [
          'name' => 'Bob'
       ]
@@ -473,6 +490,70 @@ echo($output);</pre></code>
       Take special care if you are trying to pass a boolean parameter. param=true and param=false do not pass true/false as you might expect. They are treated as references to variables named "true" and "false". Unlike PHP, they are not reserved names. Note that they are not reserved in property names either so you can have a property named true or false. So you might think to pass 0 and 1 to your boolean-like parameter. That won't work either. Dust's boolean testing (i.e. <code>{?xxx}</code>) is more of an existence test than a boolean test. Therefore, with param=1 and param=0 both value exists and so are considered true. Your best bet is to pass 1 and "", e.g. param=1 or param="". You could also leave off param="" if you are sure the name is not elsewhere in your data and accessible.
     </p>
 
+    <h3>Defining PHP Data</h3>
+    <p>
+      Dust PHP traverses and resolves values from several forms of data. Data can be in the form of an associative array, dynamic object (i.e. stdClass), class properties/methods, or even anonymous functions (i.e. closures). Here is a more advanced example:
+    </p>
+    <div class="code">
+      <pre><code data-language="php">use Dust\Evaluate\Chunk;
+use Dust\Evaluate\Context;
+use Dust\Evaluate\Bodies;
+use Dust\Evaluate\Parameters;
+
+class Info
+{
+    public $extensions = ['PHP' => 'php', 'JavaScript' => 'js', 'Python' => 'py'];
+
+    public function getTextFile(Chunk $chunk, Context $context, Bodies $bodies = null, Parameters $params = null)
+    {
+        //get textFile context value
+        $textFile = $context->get('textFile');
+        if (empty($textFile)) {
+            $chunk->setError('Unable to find textFile in context');
+        } elseif (!is_file($textFile)) {
+            $chunk->setError('Unable to find ' . $textFile);
+        } else {
+            return $chunk->write(file_get_contents($textFile));
+        }
+    }
+}
+
+$context = [
+    'info' => function () {
+        return new Info();
+    },
+    'dateString' => function () { return date(DATE_RFC822); },
+    'arrayAccess' => new \ArrayObject(['foo' => 'bar']);
+];</code></pre>
+    </div>
+    <p>
+      Now the following template:
+    </p>
+    <div class="code">
+      <pre><code>{#info textFile="myfile.{info.extensions.JavaScript}"}
+  {#extensions}
+    Language {$idx} has extension .{.}{~n}
+  {/extensions}
+  {#getTextFile}Contents of {textFile}: {.}{~n}{/getTextFile}}
+{/info}
+It is currently {dateString}{~n}
+Look, I can even use array access: {arrayAccess.foo}</code></pre>
+    </div>
+    <p>
+      As expected, this might output:
+    </p>
+    <div class="code">
+      <pre><code>Language PHP has extension .php
+Language JavaScript has extension .js
+Language Python has extension .py
+Contents of myfile.js: alert('Hello');
+It is currently Fri, 21 Dec 2012 11:11:59 UTC
+Look, I can even use array access: bar</code></pre>
+    </div>
+    <p>
+      Remember, logic in templates may not be what you want, but Dust PHP gives you the freedom to make that choice.
+    </p>
+
     <h3>Partials</h3>
     <p>
       A Dust template named "xxx" is authored in a file named xxx.dust. You can have multiple .dust files and reference one Dust template as part of another one. This is the basis for "components" or reusable templates for tasks like a common header and footer on multiple pages.
@@ -489,7 +570,7 @@ echo($output);</pre></code>
       As long as the objects for the header.dust and footer.dust templates are loaded and registered prior to executing this template, it will run the header template, then its own body view and finally the footer template.
     </p>
     <p>
-      The partial reference syntax <code>{>name /}</code> also supports paths so you can have a template at a path like "shared/header.dust" and reference it as <code>{>"shared/header" /}</code>. This allows partials to be organized into library-like structures using folders.
+      The partial reference syntax <code>{>name /}</code> also supports paths so you can have a template at a path like "shared/header.dust" and reference it as <code>{>"shared/header" /}</code>. This allows partials to be organized into library-like structures using folders. (see below for loading from file-system)
     </p>
     <p>
       Like sections, partials accept parameters so you can build reusable components that are parameterizable easily. This gives you the same foundation for building libraries as other languages. By passing all the data into the partial using parameters, you isolate the partial from any dependence on the context when it is invoked. So you might have things like <code>{>header mode="classic" /}</code> to control the header behavior.
@@ -531,6 +612,13 @@ echo($output);</pre></code>
     </div>
     <p>
       This sort of usage might suit a case where you have a multi-page flow and the controller could pass "page1", "page2",... in the data model to dynamically choose which partial to use to implement the view.
+    </p>
+    <h5>Automatic Loading from Filesystem</h5>
+    <p>
+      If <code>compileFile</code> is used originally without an override name, it will have a directory and all referenced partials (that haven't already been loaded) will be assumed to have the ".dust" extension and attmpt to load relative to the template's path. You can also add strings to the <code>includedDirectories</code> array on the Dust object. If a referenced partial name is not found relative to the template's path (or there is no relative path info), it will attempt to find the template relative the paths in the <code>includedDirectories</code> array, in order.
+    </p>
+    <p>
+      The autoloader can also be overridden either by setting the <code>autoloaderOverride</code> to a callable, or simply extending the main Dust class and overriding <code>loadTemplate</code>. Otherwise, Dust will look for previously loaded templates of the same name, then if relative file info for the template is present or at least one include directory is set, it will attempt to resolve the name as a path (appending ".dust" to the filename if needed).
     </p>
 
     <h3>Helpers</h3>
@@ -746,7 +834,7 @@ echo($output);</pre></code>
     </p>
 
     <h3>Dust Under the Covers</h3>
-    <h5>Writing a helper</h5>
+    <h5>Writing a Helper</h5>
     <p>
       Dust helpers are PHP <a href="http://php.net/manual/en/language.types.callable.php">callable</a> registered with the <code>$dust->helpers</code> array with the name as the index. Thus the general form of a helper is (using an anonymous function):
     </p>
@@ -821,7 +909,34 @@ $dust->helpers['myHelper'] = function ($chunk, $context, $bodies, $params) {
     <p>
       <code>$context</code> is the Dust context stack. Normally you will just use the Dust <code>get</code> method when retrieving values from the context stack. If you need a deeper knowledge, take a look at the code for Dust\Evaluate\Context::get
     </p>
-
+    <h5>Writing a Filter</h5>
+    <p>
+      Dust filters are simple callables that accept a single parameter of any type and can return any type. Here is an example of a filter to strip tags, applied to the Dust object, and ran on some input:
+    </p>
+    <div class="code">
+      <pre><code data-language="php">//create filter
+$dust->filters['striptags'] = function ($value) {
+    //not a string, nothing to do
+    if (!is_string($value)) {
+        return $value;
+    }
+    //otherwise strip the tags
+    return strip_tags($value);
+}
+//create a context
+$context = ['text' => '&lt;p>My paragraph!&lt;/p>'];
+//compile something using this filter
+$dust->compile('Without tags: {text|striptags}', 'test');
+//render and dump output
+echo($dust->render('test', $context));</code></pre>
+    </div>
+    <p>
+      As expected, this will output simply <code>My paragraph!</code> without the tags. You can also implement the <code>Dust\Filter\Filter</code> interface which has an apply method to override.
+    </p>
+    <h5>Building Dust PHP</h5>
+    <p>
+      Dust is written in <a href="http://pratphall.org">Pratphall</a>. To compile, get the code from <a href="http://github.com/cretz/dust-php">GitHub</a> and run <code>npm install</code> which should install all dev dependencies. The compilation uses Jake, so simply running <code>./node_modules/.bin/jake build</code> will do the build. Ignore warnings about "unknown type of call" in the test code (it's the code that translates the spec from dustjs). Specifically, the build will clear the src/ and tests/ folders, then compile the code from pratphall/ into these two folders.
+    </p>
 
     <script src="jquery.min.js"></script>
     <script src="bootstrap.min.js"></script>
