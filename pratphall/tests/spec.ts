@@ -29,7 +29,7 @@ module Dust {
             //create parser
             var compiled = SpecTest.dust.compile(test.source, test.name);
             var evald = SpecTest.dust.renderTemplate(compiled, test.context);
-            this.assertEquals(trim(test.expected), trim(evald);
+            this.assertEquals(trim(test.expected), trim(evald));
         }
 
         __emitCoreSpecTests() { }

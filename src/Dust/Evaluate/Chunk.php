@@ -71,10 +71,14 @@ class Chunk {
     }
     
     public function setAndReplaceNamedBlock(Ast\Section $section, Context $ctx) {
-        //run the body
-        $newChunk = $this->evaluator->evaluateBody($section->body, $ctx, $this->newChild());
+        $output = '';
+        //if it has no body, we don't do anything
+        if ($section != null && $section->body != null) {
+            //run the body
+            $output = $this->evaluator->evaluateBody($section->body, $ctx, $this->newChild())->out;
+        }
         //save it
-        $this->setNamedStrings[$section->identifier->key] = $newChunk->out;
+        $this->setNamedStrings[$section->identifier->key] = $output;
         //try and replace
         $this->replaceNamedBlock($section->identifier->key);
     }

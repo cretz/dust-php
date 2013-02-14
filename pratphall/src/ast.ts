@@ -7,6 +7,7 @@ module Dust.Ast {
     }
 
     export class Body extends Ast {
+        filePath: string;
         parts: Part[];
 
         toString() {

@@ -14,15 +14,17 @@ class Evaluator {
         $this->options = $options;
     }
     
-    public function error(Ast\Ast $ast, $message) {
+    public function error(Ast\Ast $ast = null, $message = null) {
         throw new EvaluateException($ast, $message);
     }
     
     public function evaluate(Ast\Body $source, $state) {
-        return $this->evaluateBody($source, new Context(null, new State($state)), new Chunk($this))->out;
+        return trim($this->evaluateBody($source, new Context($this, null, new State($state)), new Chunk($this))->out);
     }
     
     public function evaluateBody(Ast\Body $body, Context $ctx, Chunk $chunk) {
+        //go ahead and set the file path on the current context
+        $ctx->currentFilePath = $body->filePath;
         foreach ($body->parts as $part) {
             if ($part instanceof Ast\Comment) { }
             elseif ($part instanceof Ast\Section) $chunk = $this->evaluateSection($part, $ctx, $chunk);
@@ -55,6 +57,27 @@ class Evaluator {
                 $this->error($section->identifier, 'Evaluated identifier for partial not supported');
             }
             $chunk->setAndReplaceNamedBlock($section, $ctx);
+        } elseif ($section->type == '@') {
+            if ($section->identifier->key == null) {
+                $this->error($section->identifier, 'Evaluated identifier for helper not supported');
+            }
+            //do we have the helper?
+            if (!isset($this->dust->helpers[$section->identifier->key])) {
+                $this->error($section->identifier, 'Unable to find helper');
+            }
+            $helper = $this->dust->helpers[$section->identifier->key];
+            //build state w/ no current value
+            $state = new State(null);
+            //do we have an explicit context?
+            if ($section->context != null) {
+                $state->forcedParent = $ctx->resolve($section->context->identifier);
+            }
+            //how about params?
+            if (!empty($section->parameters)) {
+                $state->params = $this->evaluateParameters($section->parameters, $ctx);
+            }
+            //now run the helper
+            $chunk = $this->handleCallback($ctx->pushState($state), $helper, $chunk, $section);
         } else {
             //build a new state set
             $resolved = $ctx->resolve($section->identifier);
@@ -76,11 +99,12 @@ class Evaluator {
                     //empty means try else
                     if ($this->isEmpty($resolved)) {
                         $chunk = $this->evaluateElseBody($section, $ctx, $chunk);
-                    } elseif (is_array($resolved)) {
+                    } elseif (is_array($resolved) || $resolved instanceof \Traversable) {
                         //array means loop
+                        $iterationCount = -1;
                         foreach ($resolved as $index => $value) {
                             //run body
-                            $chunk = $this->evaluateBody($section->body, $ctx->push($value, $index, count($resolved)), $chunk);
+                            $chunk = $this->evaluateBody($section->body, $ctx->push($value, $index, count($resolved), ++$iterationCount), $chunk);
                         }
                     } elseif ($resolved instanceof Chunk) {
                         $chunk = $resolved;
@@ -136,9 +160,12 @@ class Evaluator {
             return $chunk;
         }
         //otherwise, we're >
-        if (!$this->dust->templateExists($partialName)) return $chunk;
+        //get base directory
+        $basePath = $ctx->currentFilePath;
+        if ($basePath != null) $basePath = dirname($basePath);
         //load partial
-        $partialBody = $this->dust->loadTemplate($partialName);
+        $partialBody = $this->dust->loadTemplate($partialName, $basePath);
+        if ($partialBody == null) return $chunk;
         //null main state
         $state = new State(null);
         //partial context?
@@ -292,7 +319,11 @@ class Evaluator {
                 $callback = \Closure::bind($callback, $newThis);
             }
         }
-        $reflected = new \ReflectionFunction($callback);
+        if (is_object($callback) && method_exists($callback, '__invoke')) {
+            $reflected = new \ReflectionMethod($callback, '__invoke');
+        } else {
+            $reflected = new \ReflectionFunction($callback);
+        }
         $paramCount = $reflected->getNumberOfParameters();
         $args = [];
         if ($paramCount > 0) {

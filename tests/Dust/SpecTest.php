@@ -3,15 +3,15 @@ namespace Dust;
 
 class SpecTest extends \PHPUnit_Framework_TestCase {
     private static $dust;
-
+    
     public static function setUpBeforeClass() {
         SpecTest::$dust = new Dust();
     }
-
+    
     public static function tearDownAfterClass() {
         SpecTest::$dust = null;
     }
-
+    
     private function runSpecTest($test) {
         //error means expected exception
         if (isset($test->error)) $this->setExpectedException('\Dust\DustException');
@@ -20,8 +20,8 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         $evald = SpecTest::$dust->renderTemplate($compiled, $test->context);
         $this->assertEquals(trim($test->expected), trim($evald));
     }
-
-
+    
+    
     public function testHelloWorld() {
         $test = (object)[
             "name" => "hello_world",
@@ -32,7 +32,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testShouldTestOneBasicReference() {
         $test = (object)[
             "name" => "should test one basic reference",
@@ -43,7 +43,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testImplicit() {
         $test = (object)[
             "name" => "implicit",
@@ -60,7 +60,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testRenameKey() {
         $test = (object)[
             "name" => "rename_key",
@@ -77,7 +77,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testForceLocal() {
         $test = (object)[
             "name" => "force_local",
@@ -94,7 +94,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testEscaped() {
         $test = (object)[
             "name" => "escaped",
@@ -108,7 +108,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testUseForCreatingABlockAndUseItToSetParams() {
         $test = (object)[
             "name" => "use . for creating a block and use it to set params",
@@ -121,7 +121,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testSyncKey() {
         $test = (object)[
             "name" => "sync_key",
@@ -136,7 +136,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testSyncChunk() {
         $test = (object)[
             "name" => "sync_chunk",
@@ -151,20 +151,20 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testBaseTemplate() {
         $test = (object)[
             "name" => "base_template",
             "source" => "Start{~n}{+title}Base Title{/title}{~n}{+main}Base Content{/main}{~n}End",
             "context" => (object)[
-
+                
             ],
             "expected" => "Start\nBase Title\nBase Content\nEnd",
             "message" => "should test base template"
         ];
         $this->runSpecTest($test);
     }
-
+    
     /**
      * @depends testBaseTemplate
      */
@@ -178,7 +178,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     /**
      * @depends testRecursion
      */
@@ -204,7 +204,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testComments() {
         $test = (object)[
             "name" => "comments",
@@ -215,7 +215,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testContext() {
         $test = (object)[
             "name" => "context",
@@ -248,7 +248,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testPartial() {
         $test = (object)[
             "name" => "partial",
@@ -262,7 +262,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testPartialWithBlocks() {
         $test = (object)[
             "name" => "partial_with_blocks",
@@ -276,7 +276,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testPartialWithBlocksAndNoDefaults() {
         $test = (object)[
             "name" => "partial_with_blocks_and_no_defaults",
@@ -290,7 +290,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testFalseValueInContextIsTreatedAsEmptySameAsUndefined() {
         $test = (object)[
             "name" => "false value in context is treated as empty, same as undefined",
@@ -303,7 +303,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testNumeric0ValueInContextIsTreatedAsNonEmpty() {
         $test = (object)[
             "name" => "numeric 0 value in context is treated as non empty",
@@ -316,7 +316,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testEmptystringContextIsTreatedAsEmpty() {
         $test = (object)[
             "name" => "emptyString context is treated as empty",
@@ -329,7 +329,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testEmptystringSingleQuotedInContextIsTreatedAsEmpty() {
         $test = (object)[
             "name" => "emptyString, single quoted in context is treated as empty",
@@ -342,7 +342,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testNullInTheContextTreatedAsEmpty() {
         $test = (object)[
             "name" => "null in the context treated as empty",
@@ -353,7 +353,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testUndefinedInTheContextTreatedAsEmpty() {
         $test = (object)[
             "name" => "undefined in the context treated as empty",
@@ -366,7 +366,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testUndefinedStringInTheContextTreatedAsNonEmpty() {
         $test = (object)[
             "name" => "undefined string in the context treated as non empty",
@@ -379,7 +379,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testNullIsTreatedAsEmptyInExists() {
         $test = (object)[
             "name" => "null is treated as empty in exists",
@@ -390,7 +390,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testUndefinedIsTreatedAsEmptyInExists() {
         $test = (object)[
             "name" => "undefined is treated as empty in exists",
@@ -403,7 +403,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testNullIsTreatedAsTruthyInNotExists() {
         $test = (object)[
             "name" => "null is treated as truthy in not exists",
@@ -416,7 +416,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testUndefinedIsTreatedAsTruthyInNotExists() {
         $test = (object)[
             "name" => "undefined is treated as truthy in not exists",
@@ -429,7 +429,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testUndefinedIsTreatedAsEmptyInExists2() {
         $test = (object)[
             "name" => "undefined is treated as empty in exists",
@@ -442,7 +442,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testDustSyntaxError() {
         $test = (object)[
             "name" => "Dust syntax error",
@@ -453,7 +453,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testScalarNullInASection() {
         $test = (object)[
             "name" => "scalar null in a # section",
@@ -466,7 +466,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testScalarNumeric0InASection() {
         $test = (object)[
             "name" => "scalar numeric 0 in a # section",
@@ -477,7 +477,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testScalarNumericNonzeroInASection() {
         $test = (object)[
             "name" => "scalar numeric non-zero in a # section",
@@ -490,7 +490,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testScalarNonEmptyStringInASection() {
         $test = (object)[
             "name" => "scalar non empty string in a # section",
@@ -503,7 +503,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testScalarNonEmptyStringInASection2() {
         $test = (object)[
             "name" => "scalar non empty string in a # section",
@@ -516,7 +516,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testMissingScalarValue() {
         $test = (object)[
             "name" => "missing scalar value",
@@ -529,7 +529,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testScalarTrueValueInTheSection() {
         $test = (object)[
             "name" => "scalar true value in the # section",
@@ -540,7 +540,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testScalarFalseValueInTheSection() {
         $test = (object)[
             "name" => "scalar false value in the # section",
@@ -553,7 +553,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testScalarValuesTrueAndFalseAreSupportedInNorElseBlocks() {
         $test = (object)[
             "name" => "scalar values true and false are supported in # nor else blocks ",
@@ -567,14 +567,14 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testEmptyArrayIsTreatedAsEmptyInExists() {
         $test = (object)[
             "name" => "empty array is treated as empty in exists",
             "source" => "{?array}true{:else}false{/array}",
             "context" => (object)[
                 "array" => [
-
+                    
                 ]
             ],
             "expected" => "false",
@@ -582,7 +582,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testEmptyIsTreatedAsNonEmptyInExists() {
         $test = (object)[
             "name" => "empty {} is treated as non empty in exists",
@@ -595,7 +595,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testEmptyArrayIsTreatedAsEmptyInASection() {
         $test = (object)[
             "name" => "empty array is treated as empty in a section",
@@ -608,7 +608,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testEmptyIsTreatedAsNonEmptyInASection() {
         $test = (object)[
             "name" => "empty {} is treated as non empty in a section",
@@ -621,7 +621,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testNonemptyArrayInAReference() {
         $test = (object)[
             "name" => "non-empty array in a reference",
@@ -637,7 +637,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testNullStringInTheContextTreatedAsNonEmpty() {
         $test = (object)[
             "name" => "null string in the context treated as non empty",
@@ -650,7 +650,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testString0ValueInContextIsTreatedAsNonEmpty() {
         $test = (object)[
             "name" => "String 0 value in context is treated as non empty",
@@ -663,7 +663,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testEmptyArray() {
         $test = (object)[
             "name" => "empty_array",
@@ -677,7 +677,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testArray() {
         $test = (object)[
             "name" => "array",
@@ -699,7 +699,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testAccessingArrayElementByIndexWhenElementValueIsAPrimitive() {
         $test = (object)[
             "name" => "Accessing array element by index when element value is a primitive",
@@ -717,7 +717,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testAccessingArrayByIndexWhenElementValueIsAObject() {
         $test = (object)[
             "name" => "Accessing array by index when element value is a object",
@@ -735,7 +735,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testAccessingArrayByIndexWhenElementIsANestedObject() {
         $test = (object)[
             "name" => "Accessing array by index when element is a nested object",
@@ -758,7 +758,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testAccessingArrayByIndexWhenElementIsListOfPrimitives() {
         $test = (object)[
             "name" => "Accessing array by index when element is list of primitives",
@@ -774,7 +774,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testAccessingArrayInsideALoopUsingTheCurrentContext() {
         $test = (object)[
             "name" => "Accessing array inside a loop using the current context",
@@ -796,7 +796,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testArrayReferenceIdxInIterationOnObjects() {
         $test = (object)[
             "name" => "array: reference \$idx in iteration on objects",
@@ -820,7 +820,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testArrayReferenceLenInIterationOnObjects() {
         $test = (object)[
             "name" => "array: reference \$len in iteration on objects",
@@ -842,7 +842,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testArrayReferenceIdxInIterationOnSimpleType() {
         $test = (object)[
             "name" => "array reference \$idx in iteration on simple type",
@@ -860,7 +860,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testArrayReferenceLenInIterationOnSimpleType() {
         $test = (object)[
             "name" => "array reference \$len in iteration on simple type",
@@ -878,7 +878,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testArrayReferenceIdxlenOnEmptyArrayCase() {
         $test = (object)[
             "name" => "array reference \$idx/\$len on empty array case",
@@ -886,7 +886,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
             "context" => (object)[
                 "title" => "Sir",
                 "names" => [
-
+                    
                 ]
             ],
             "expected" => "",
@@ -894,7 +894,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testArrayReferenceIdxlenOnSingleElementCaseScalarCase() {
         $test = (object)[
             "name" => "array reference \$idx/\$len on single element case (scalar case)",
@@ -907,7 +907,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testArrayReferenceIdxlenSectionCase() {
         $test = (object)[
             "name" => "array reference \$idx/\$len {#.} section case",
@@ -924,7 +924,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testArrayReferenceIdxlenNotChangedInNestedObject() {
         $test = (object)[
             "name" => "array reference \$idx/\$len not changed in nested object",
@@ -948,7 +948,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testArrayReferenceIdxlenNestedLoops() {
         $test = (object)[
             "name" => "array reference \$idx/\$len nested loops",
@@ -994,7 +994,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testUsingIdxInArrayReferenceAccessing() {
         $test = (object)[
             "name" => "using idx in array reference Accessing",
@@ -1024,7 +1024,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testUsingLenInArrayReferenceAccessing() {
         $test = (object)[
             "name" => "using len in array reference Accessing",
@@ -1054,7 +1054,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testUsingIdxInArrayReferenceAccessing2() {
         $test = (object)[
             "name" => "using idx in array reference Accessing",
@@ -1081,7 +1081,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testUsingLenInArrayReferenceAccessing2() {
         $test = (object)[
             "name" => "using len in array reference Accessing",
@@ -1111,7 +1111,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testObject() {
         $test = (object)[
             "name" => "object",
@@ -1128,7 +1128,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testPath() {
         $test = (object)[
             "name" => "path",
@@ -1139,14 +1139,14 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testConditional() {
         $test = (object)[
             "name" => "conditional",
             "source" => "{?tags}<ul>{~n}{#tags}{~s} <li>{.}</li>{~n}{/tags}</ul>{:else}No Tags!{/tags}{~n}{^likes}No Likes!{:else}<ul>{~n}{#likes}{~s} <li>{.}</li>{~n}{/likes}</ul>{/likes}",
             "context" => (object)[
                 "tags" => [
-
+                    
                 ],
                 "likes" => [
                     "moe",
@@ -1160,14 +1160,14 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testEmptyElseBlock() {
         $test = (object)[
             "name" => "empty_else_block",
             "source" => "{#foo}full foo{:else}empty foo{/foo}",
             "context" => (object)[
                 "foo" => [
-
+                    
                 ]
             ],
             "expected" => "empty foo",
@@ -1175,7 +1175,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testFilter() {
         $test = (object)[
             "name" => "filter",
@@ -1193,7 +1193,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testInvalidFilter() {
         $test = (object)[
             "name" => "Invalid filter",
@@ -1204,7 +1204,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testJsonstringifyFilter() {
         $test = (object)[
             "name" => "JSON.stringify filter",
@@ -1221,7 +1221,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     /**
      * @depends testPartial
      * @depends testHelloWorld
@@ -1240,7 +1240,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     /**
      * @depends testPartial
      */
@@ -1259,7 +1259,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     /**
      * @depends testPartialWithBlocksAndNoDefaults
      */
@@ -1276,7 +1276,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     /**
      * @depends testPartialWithBlocksAndNoDefaults
      */
@@ -1293,7 +1293,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     /**
      * @depends testPartialWithBlocks
      */
@@ -1310,7 +1310,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testPartialWithInlineParams() {
         $test = (object)[
             "name" => "partial with inline params",
@@ -1324,7 +1324,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testPartialWithInlineParamsTreeWalkUp() {
         $test = (object)[
             "name" => "partial with inline params tree walk up",
@@ -1347,7 +1347,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     /**
      * @depends testPartial
      */
@@ -1366,7 +1366,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     /**
      * @depends testPartial
      */
@@ -1394,7 +1394,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     /**
      * @depends testPartial
      */
@@ -1413,7 +1413,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testPartialWithBlocksAndInlineParams() {
         $test = (object)[
             "name" => "partial with blocks and inline params",
@@ -1427,7 +1427,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testPartialWithBlocksOverrideDefaultValuesForBlocksAndInlineParams() {
         $test = (object)[
             "name" => "partial with blocks, override default values for blocks and inline params",
@@ -1441,7 +1441,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testPartialWithBlocksAndNoDefaultsOverrideDefaultValuesForBlocksAndInlineParams() {
         $test = (object)[
             "name" => "partial with blocks and no defaults, override default values for blocks and inline params",
@@ -1455,7 +1455,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testPartialWithNoBlocksIgnoreTheOverrideInlinePartials() {
         $test = (object)[
             "name" => "partial with no blocks, ignore the override inline partials",
@@ -1469,7 +1469,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testIgnoreExtraWhitespacesBetweenOpeningBracePlusAnyOfAndTheTagIdentifier() {
         $test = (object)[
             "name" => "ignore extra whitespaces between opening brace plus any of (#,?,@,^,+,%) and the tag identifier",
@@ -1484,7 +1484,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testErrorWhitespacesBetweenTheOpeningBraceAndAnyOfIsNotAllowed() {
         $test = (object)[
             "name" => "error: whitespaces between the opening brace and any of (#,?,@,^,+,%) is not allowed",
@@ -1499,7 +1499,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testWhitespacesBetweenTheClosingBracePlusSlashAndTheTagIdentifierIsSupported() {
         $test = (object)[
             "name" => "whitespaces between the closing brace plus slash and the tag identifier is supported",
@@ -1514,7 +1514,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testErrorWhitespacesBetweenTheOpenningCurlyBraceAndForwardSlashInTheClosingTagsNotSupported() {
         $test = (object)[
             "name" => "error: whitespaces between the openning curly brace and forward slash in the closing tags not supported",
@@ -1529,7 +1529,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testWhitespacesBeforeTheSelfClosingTagsIsAllowed() {
         $test = (object)[
             "name" => "whitespaces before the self closing tags is allowed",
@@ -1544,7 +1544,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testErrorWhitespacesBetweenTheForwardSlashAndTheClosingBraceInSelfClosingTags() {
         $test = (object)[
             "name" => "error: whitespaces between the forward slash and the closing brace in self closing tags",
@@ -1559,7 +1559,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testExtraWhitespacesBetweenInlineParamsSupported() {
         $test = (object)[
             "name" => "extra whitespaces between inline params supported",
@@ -1574,7 +1574,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     /**
      * @depends testHelloWorld
      */
@@ -1592,7 +1592,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     /**
      * @depends testPartial
      * @depends testHelloWorld
@@ -1611,7 +1611,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testIgnoreWhitespacesAlsoMeansIgnoringEol() {
         $test = (object)[
             "name" => "ignore whitespaces also means ignoring eol",
@@ -1622,7 +1622,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testIgnoreCarriageReturnOrTabInInlineParamValues() {
         $test = (object)[
             "name" => "ignore carriage return or tab in inline param values",
@@ -1633,7 +1633,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testParams() {
         $test = (object)[
             "name" => "params",
@@ -1648,7 +1648,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testInlineParamsAsInteger() {
         $test = (object)[
             "name" => "inline params as integer",
@@ -1663,7 +1663,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testInlineParamsAsFloat() {
         $test = (object)[
             "name" => "inline params as float",
@@ -1678,7 +1678,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testBlocksWithDynamicKeys() {
         $test = (object)[
             "name" => "blocks with dynamic keys",
@@ -1691,7 +1691,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testBlocksWithMoreThanOneDynamicKeys() {
         $test = (object)[
             "name" => "blocks with more than one dynamic keys",
@@ -1705,7 +1705,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testBlocksWithDynamicKeyValuesAsObjects() {
         $test = (object)[
             "name" => "blocks with dynamic key values as objects",
@@ -1720,7 +1720,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testBlocksWithDynamicKeyValuesAsArrays() {
         $test = (object)[
             "name" => "blocks with dynamic key values as arrays",
@@ -1740,7 +1740,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testTestThatTheScopeOfTheFunctionIsCorrectAndThatANonchunkReturnValueIsUsedForTruthinessChecks() {
         $test = (object)[
             "name" => "test that the scope of the function is correct and that a non-chunk return value is used for truthiness checks",
@@ -1758,7 +1758,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testTestThatFunctionThatDoNotReturnChunkAndReturnFalsyAreTreatedAsFalsy() {
         $test = (object)[
             "name" => "test that function that do not return chunk and return falsy are treated as falsy",
@@ -1773,7 +1773,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testTestThatFunctionThatDoNotReturnChunkAndReturn0AreTreatedAsTruthyInTheDustSense() {
         $test = (object)[
             "name" => "test that function that do not return chunk and return 0 are treated as truthy (in the Dust sense)",
@@ -1788,7 +1788,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testTestThatTheScopeOfTheFunctionIsCorrect() {
         $test = (object)[
             "name" => "test that the scope of the function is correct",
@@ -1806,7 +1806,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testSupportDashInKeyreference() {
         $test = (object)[
             "name" => "support dash in key/reference",
@@ -1821,7 +1821,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testSupportDashInPartialsKey() {
         $test = (object)[
             "name" => "support dash in partial's key",
@@ -1835,7 +1835,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testSupportDashInPartialsParams() {
         $test = (object)[
             "name" => "support dash in partial's params",
@@ -1849,7 +1849,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testSupportDashInSections() {
         $test = (object)[
             "name" => "support dash in # sections",
@@ -1870,7 +1870,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testSupportDashInARefereceForExistsSection() {
         $test = (object)[
             "name" => "support dash in a referece for exists section",
@@ -1881,7 +1881,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testBaseTemplateWithDashInTheReference() {
         $test = (object)[
             "name" => "base_template with dash in the reference",
@@ -1892,7 +1892,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testChildTemplateWithDashInTheReference() {
         $test = (object)[
             "name" => "child_template with dash in the reference",
@@ -1903,7 +1903,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testBuffer() {
         $test = (object)[
             "name" => "buffer ",
@@ -1914,7 +1914,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testBufferDoesNotIgnoreWs() {
         $test = (object)[
             "name" => "buffer does not ignore ws",
@@ -1927,7 +1927,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testBufferDoesNotIgnoreLineFeed() {
         $test = (object)[
             "name" => "buffer: does not ignore line feed",
@@ -1938,7 +1938,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testBufferDoesNotIgnoreLineFeedAndCarriage() {
         $test = (object)[
             "name" => "buffer: does not ignore line feed and carriage",
@@ -1951,7 +1951,7 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
+    
     public function testBufferDoesNotIgnoreCarriageReturn() {
         $test = (object)[
             "name" => "buffer: does not ignore carriage return",
@@ -1964,6 +1964,6 @@ class SpecTest extends \PHPUnit_Framework_TestCase {
         ];
         $this->runSpecTest($test);
     }
-
-
+    
+    
 }

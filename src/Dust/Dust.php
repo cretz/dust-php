@@ -14,6 +14,10 @@ class Dust implements \Serializable {
     
     public $automaticFilters;
     
+    public $includedDirectories = [];
+    
+    public $autoloaderOverride;
+    
     public function __construct($parser = null, $evaluator = null) {
         if ($parser === null) $parser = new Parse\Parser();
         if ($evaluator === null) $evaluator = new Evaluate\Evaluator($this);
@@ -39,7 +43,8 @@ class Dust implements \Serializable {
             "gte" => new Helper\Gte(),
             "default" => new Helper\DefaultHelper(),
             "sep" => new Helper\Sep(),
-            "size" => new Helper\Size()
+            "size" => new Helper\Size(),
+            "contextDump" => new Helper\ContextDump()
         ];
         $this->automaticFilters = [$this->filters['h']];
     }
@@ -55,17 +60,51 @@ class Dust implements \Serializable {
         return function ($context) use ($parsed) { return $this->renderTemplate($parsed, $context); };
     }
     
+    public function resolveAbsoluteDustFilePath($path, $basePath = null) {
+        //add extension if necessary
+        if (substr_compare($path, '.dust', -5, 5) !== 0) $path .= '.dust';
+        if ($basePath != null) {
+            $possible = realpath($basePath . '/' . $path);
+            if ($possible !== false) return $possible;
+        }
+        //try the current path
+        $possible = realpath($path);
+        if ($possible !== false) return $possible;
+        //now try each of the included directories
+        for ($i = 0; $i < count($this->includedDirectories); $i++) {
+            $possible = realpath($this->includedDirectories[$i] . '/' . $path);
+            if ($possible !== false) return $possible;
+        }
+        return null;
+    }
+    
+    public function compileFile($path, $basePath = null) {
+        //resolve absolute path
+        $absolutePath = $this->resolveAbsoluteDustFilePath($path, $basePath);
+        if ($absolutePath == null) return null;
+        //just compile w/ the path as the name
+        $compiled = $this->compile(file_get_contents($absolutePath), $absolutePath);
+        $compiled->filePath = $absolutePath;
+        return $compiled;
+    }
+    
     public function register($name, Ast\Body $template) {
         $this->templates[$name] = $template;
     }
     
-    public function loadTemplate($name) {
-        if (!isset($this->templates[$name])) return false;
+    public function loadTemplate($name, $basePath = null) {
+        //if there is an override, use it instead
+        if ($this->autoloaderOverride != null) return $this->autoloaderOverride->__invoke($name);
+        //is it there w/ the normal name?
+        if (!isset($this->templates[$name])) {
+            //what if I used the resolve file version of the name
+            $name = $this->resolveAbsoluteDustFilePath($name, $basePath);
+            //if name is null, then it's not around
+            if ($name == null) return null;
+            //if name is null and not in the templates array, put it there automatically
+            if (!isset($this->templates[$name])) $this->compileFile($name, $basePath);
+        }
         return $this->templates[$name];
-    }
-    
-    public function templateExists($name) {
-        return isset($this->templates[$name]);
     }
     
     public function render($name, $context) {

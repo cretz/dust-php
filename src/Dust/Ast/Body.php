@@ -2,6 +2,8 @@
 namespace Dust\Ast;
 
 class Body extends Ast {
+    public $filePath;
+    
     public $parts;
     
     public function __toString() {

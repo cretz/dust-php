@@ -18,6 +18,12 @@ function copyAll(pairs, onComplete) {
 
 desc('Build');
 task('build', {async: true}, function () {
+    //recreate src and test folders
+    console.log('Recreating src and tests folders');
+    if (fs.existsSync('src')) fs.removeSync('src');
+    if (fs.existsSync('tests')) fs.removeSync('tests');
+    fs.mkdirSync('src');
+    fs.mkdirSync('tests');
     //compile
     console.log('Compiling with Pratphall');
     var cmds = [
@@ -26,13 +32,7 @@ task('build', {async: true}, function () {
         //test src
         'node ./node_modules/pratphall/bin/ppc.js --no-php-lib --exclude-outside --ext pratphall/tests/spec-ext.ts -o ./tests ./pratphall/tests/common.ts'
     ];
-    jake.exec(cmds, function () {
-        //copy other files
-        console.log('Copying support files');
-        copyAll([
-            {src: 'pratphall/tests/phpunit.xml', dest: 'tests/phpunit.xml'}
-        ], complete);
-    }, {printStdout: true, printStderr: true});
+    jake.exec(cmds, complete, {printStdout: true, printStderr: true});
 });
 
 desc('Run Tests');

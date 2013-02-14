@@ -10,7 +10,7 @@ module Dust.Evaluate {
     }
 
     export class EvaluateException extends Exception {
-        constructor(public ast: Ast.Ast, message: string) {
+        constructor(public ast?: Ast.Ast, message?: string) {
             super(message);
         }
     }
@@ -20,15 +20,17 @@ module Dust.Evaluate {
         constructor(public dust: Dust, public options = new EvaluatorOptions()) {
         }
 
-        error(ast: Ast.Ast, message: string) {
+        error(ast?: Ast.Ast, message?: string) {
             throw new EvaluateException(ast, message);
         }
 
         evaluate(source: Ast.Body, state: any) {
-            return trim(this.evaluateBody(source, new Context(null, new State(state)), new Chunk(this)).out);
+            return trim(this.evaluateBody(source, new Context(this, null, new State(state)), new Chunk(this)).out);
         }
 
         evaluateBody(body: Ast.Body, ctx: Context, chunk: Chunk) {
+            //go ahead and set the file path on the current context
+            ctx.currentFilePath = body.filePath;
             body.parts.forEach((part: Ast.Part) => {
                 if (part instanceof Ast.Comment) { }
                 else if (part instanceof Ast.Section) chunk = this.evaluateSection(<Ast.Section>part, ctx, chunk);
@@ -61,6 +63,27 @@ module Dust.Evaluate {
                     this.error(section.identifier, 'Evaluated identifier for partial not supported');
                 }
                 chunk.setAndReplaceNamedBlock(section, ctx);
+            } else if (section.type == '@') {
+                if (section.identifier.key == null) {
+                    this.error(section.identifier, 'Evaluated identifier for helper not supported');
+                }
+                //do we have the helper?
+                if (!isset(this.dust.helpers[section.identifier.key])) {
+                    this.error(section.identifier, 'Unable to find helper');
+                }
+                var helper = this.dust.helpers[section.identifier.key];
+                //build state w/ no current value
+                var state = new State(null);
+                //do we have an explicit context?
+                if (section.context != null) {
+                    state.forcedParent = ctx.resolve(section.context.identifier);
+                }
+                //how about params?
+                if (!empty(section.parameters)) {
+                    state.params = this.evaluateParameters(section.parameters, ctx);
+                }
+                //now run the helper
+                chunk = this.handleCallback(ctx.pushState(state), helper, chunk, section);
             } else {
                 //build a new state set
                 var resolved = ctx.resolve(section.identifier);
@@ -82,13 +105,14 @@ module Dust.Evaluate {
                         //empty means try else
                         if (this.isEmpty(resolved)) {
                             chunk = this.evaluateElseBody(section, ctx, chunk);
-                        } else if (is_array(resolved)) {
-                                //array means loop
-                                (<any[]>resolved).forEach((value: any, index: any) => {
-                                    //run body
-                                    chunk = this.evaluateBody(section.body, ctx.push(
-                                        value, index, (<any[]>resolved).length), chunk);
-                                });
+                        } else if (is_array(resolved) || resolved instanceof Traversable) {
+                            //array means loop
+                            var iterationCount = -1;
+                            (<any[]>resolved).forEach((value: any, index: any) => {
+                                //run body
+                                chunk = this.evaluateBody(section.body, ctx.push(
+                                    value, index, (<any[]>resolved).length, ++iterationCount), chunk);
+                            });
                         } else if (resolved instanceof Chunk) {
                             chunk = <Chunk>resolved;
                         } else {
@@ -143,9 +167,12 @@ module Dust.Evaluate {
                 return chunk;
             }
             //otherwise, we're >
-            if (!this.dust.templateExists(partialName)) return chunk;
+            //get base directory
+            var basePath = ctx.currentFilePath;
+            if (basePath != null) basePath = dirname(basePath);
             //load partial
-            var partialBody = this.dust.loadTemplate(partialName);
+            var partialBody = this.dust.loadTemplate(partialName, basePath);
+            if (partialBody == null) return chunk;
             //null main state
             var state = new State(null);
             //partial context?
@@ -299,7 +326,12 @@ module Dust.Evaluate {
                     callback = <EvaluationCallback><any>Closure.bind(<Closure><any>callback, newThis);
                 }
             }
-            var reflected = new ReflectionFunction(callback);
+            var reflected: ReflectionFunctionAbstract;
+            if (is_object(callback) && method_exists(callback, '__invoke')) {
+                reflected = new ReflectionMethod(callback, '__invoke');
+            } else {
+                reflected = new ReflectionFunction(callback);
+            }
             var paramCount = reflected.getNumberOfParameters();
             var args = [];
             if (paramCount > 0) {
@@ -387,10 +419,14 @@ module Dust.Evaluate {
         }
 
         setAndReplaceNamedBlock(section: Ast.Section, ctx: Context) {
-            //run the body
-            var newChunk = this.evaluator.evaluateBody(section.body, ctx, this.newChild());
+            var output = ''
+            //if it has no body, we don't do anything
+            if (section != null && section.body != null) {
+                //run the body
+                output = this.evaluator.evaluateBody(section.body, ctx, this.newChild()).out;
+            }
             //save it
-            this.setNamedStrings[section.identifier.key] = newChunk.out;
+            this.setNamedStrings[section.identifier.key] = output;
             //try and replace
             this.replaceNamedBlock(section.identifier.key);
         }
@@ -426,24 +462,31 @@ module Dust.Evaluate {
 
     export class Context {
 
-        constructor(public parent?: Context, public head?: State) {
+        currentFilePath: string;
+
+        constructor(public evaluator: Evaluator, public parent?: Context, public head?: State) {
+            if (parent != null) this.currentFilePath = parent.currentFilePath;
         }
 
         get(str: string) {
             var ident = new Ast.Identifier(-1);
             ident.key = str;
-            return this.resolve(ident);
+            var resolved = this.resolve(ident);
+            resolved = this.evaluator.normalizeResolved(this, resolved, new Chunk(this.evaluator));
+            if (resolved instanceof Chunk) return resolved.out;
+            return resolved;
         }
 
-        push(head: any, index?: any, length?: number) {
+        push(head: any, index?: any, length?: number, iterationCount?: number) {
             var state = new State(head);
             if (index !== null) state.params['$idx'] = index;
             if (length !== null) state.params['$len'] = length;
+            if (iterationCount !== null) state.params['$iter'] = iterationCount;
             return this.pushState(state);
         }
 
         pushState(head: State) {
-            return new Context(this, head);
+            return new Context(this.evaluator, this, head);
         }
 
         resolve(identifier: Ast.Identifier, forceArrayLookup = false, mainValue = this.head.value) {
@@ -510,7 +553,7 @@ module Dust.Evaluate {
                 if (key in parent) {
                     return (<Object>parent)[key];
                 } else if (method_exists(parent, key)) {
-                    return (new ReflectionMethod(parent, key)).getClosureThis();
+                    return (new ReflectionMethod(parent, key)).getClosure(parent);
                 }
             } else return null;
         }
@@ -535,7 +578,7 @@ module Dust.Evaluate {
             var topParent = this;
             while (topParent.parent != null) topParent = topParent.parent;
             //now create
-            return new Context(topParent, head);
+            return new Context(this.evaluator, topParent, head);
         }
     }
 
@@ -593,7 +636,7 @@ module Dust.Evaluate {
         }
 
         __isset(name: string) {
-            return isset(this.ctx.head.params[name]);
+            return isset(this.ctx.head.params) && array_key_exists(name, this.ctx.head.params);
         }
     }
 }

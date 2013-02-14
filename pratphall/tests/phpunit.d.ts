@@ -5,6 +5,8 @@ module PHPUnit.Framework {
 
     class TestCase implements Pct.OldStyleNamespace {
         assertEquals(expected: any, actual: any, message?: string);
+        assertTrue(condition: bool, message?: string);
+
         setExpectedException(exceptionName: string, exceptionMessage?: string, exceptionCode?: number);
     }
 }

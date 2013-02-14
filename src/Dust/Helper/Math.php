@@ -9,7 +9,7 @@ class Math {
         $method = $context->get('method');
         if ($method === null) $chunk->setError('Method required');
         $operand = $context->get('operand');
-        switch ((new ReflectionFunction('key'))->getClosure()) {
+        switch ($method) {
             case 'add':
                 $result += $operand;
                 break;
@@ -35,7 +35,7 @@ class Math {
                 $result = ceil($result);
                 break;
             default:
-                $chunk->setError('Unknown key: ' . $result);
+                $chunk->setError('Unknown method: ' . $method);
         }
         //no bodies means just write
         if ($bodies == null || $bodies->block == null) return $chunk->write($result);

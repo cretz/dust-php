@@ -3,30 +3,40 @@ namespace Dust\Evaluate;
 
 use Dust\Ast;
 class Context {
+    public $evaluator;
+    
     public $parent;
     
     public $head;
     
-    public function __construct(Context $parent = null, State $head = null) {
+    public $currentFilePath;
+    
+    public function __construct(Evaluator $evaluator, Context $parent = null, State $head = null) {
+        $this->evaluator = $evaluator;
         $this->parent = $parent;
         $this->head = $head;
+        if ($parent != null) $this->currentFilePath = $parent->currentFilePath;
     }
     
     public function get($str) {
         $ident = new Ast\Identifier(-1);
         $ident->key = $str;
-        return $this->resolve($ident);
+        $resolved = $this->resolve($ident);
+        $resolved = $this->evaluator->normalizeResolved($this, $resolved, new Chunk($this->evaluator));
+        if ($resolved instanceof Chunk) return $resolved->out;
+        return $resolved;
     }
     
-    public function push($head, $index = null, $length = null) {
+    public function push($head, $index = null, $length = null, $iterationCount = null) {
         $state = new State($head);
         if ($index !== null) $state->params['$idx'] = $index;
         if ($length !== null) $state->params['$len'] = $length;
+        if ($iterationCount !== null) $state->params['$iter'] = $iterationCount;
         return $this->pushState($state);
     }
     
     public function pushState(State $head) {
-        return new Context($this, $head);
+        return new Context($this->evaluator, $this, $head);
     }
     
     public function resolve(Ast\Identifier $identifier, $forceArrayLookup = false, $mainValue = null) {
@@ -94,13 +104,13 @@ class Context {
             if (array_key_exists($key, $parent)) {
                 return $parent->{$key};
             } elseif (method_exists($parent, $key)) {
-                return (new \ReflectionMethod($parent, $key))->getClosureThis();
+                return (new \ReflectionMethod($parent, $key))->getClosure($parent);
             }
         } else return null;
     }
     
     public function findInArrayAccess($key, $value) {
-        if ((is_array($value) || $value instanceof ArrayAccess) && isset($value[$key])) {
+        if ((is_array($value) || $value instanceof \ArrayAccess) && isset($value[$key])) {
             return $value[$key];
         } else return null;
     }
@@ -119,7 +129,7 @@ class Context {
         $topParent = $this;
         while ($topParent->parent != null) $topParent = $topParent->parent;
         //now create
-        return new Context($topParent, $head);
+        return new Context($this->evaluator, $topParent, $head);
     }
     
 }

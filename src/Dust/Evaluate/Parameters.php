@@ -23,7 +23,7 @@ class Parameters {
     }
     
     public function __isset($name) {
-        return isset($this->ctx->head->params[$name]);
+        return isset($this->ctx->head->params) && array_key_exists($name, $this->ctx->head->params);
     }
     
 }
