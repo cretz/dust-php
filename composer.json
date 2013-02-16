@@ -2,7 +2,7 @@
     "name": "dust-php/dust-php",
     "description": "A templating engine for PHP based on dust",
     "keywords": ["templating", "dust"],
-    "homepage": "https://github.com/cretz/dust-php",
+    "homepage": "http://cretz.github.com/dust-php",
     "type": "library",
     "license": "MIT",
     "authors": [
