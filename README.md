@@ -1,4 +1,4 @@
-dust-php
+Dust PHP
 ========
 
-PHP templating based off of dustjs (incomplete)
+PHP templating based off of Dust JS - [http://cretz.github.com/dust-php](http://cretz.github.com/dust-php)
