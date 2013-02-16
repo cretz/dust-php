@@ -34,7 +34,7 @@
       <p>
         Dust PHP is a PHP implementation of LinkedIn's <a href="http://linkedin.github.com/dustjs/">Dust</a> (fork) template engine written in JavaScript. Dust PHP is written in <a href="http://pratphall.org">Pratphall</a>. It was built while searching for a templating language that was more powerful than mustache, concise, built in JavaScript, and contained idioms easily translatable to PHP. This is the result. It is MIT licensed. Checkout the code, submit issues, and send pull requests on the <a href="https://github.com/cretz/dust-php">GitHub page</a>. PHP 5.4 is required to use Dust PHP.
       </p>
-      <p>The rest of this manual is based on the <a href="https://github.com/linkedin/dustjs/wiki/Dust-Tutorial">Dust tutorial</a> from LinkedIn and uses examples/text from it. The LinkedIn tutorial is recommended reading to understand teh JavaScript side and how similar the PHP side is.</p>
+      <p>The rest of this manual is based on the <a href="https://github.com/linkedin/dustjs/wiki/Dust-Tutorial">Dust tutorial</a> from LinkedIn and uses examples/text from it. The LinkedIn tutorial is recommended reading to understand the JavaScript side and how similar the PHP side is.</p>
       <p>
         Here is an example of a template, a context, and the output:
       </p>
@@ -163,12 +163,12 @@ $context = new Context();</code></pre>
 
     <a class="sectionLink" id="Usage" href="#Usage"><h3>Usage</h3></a>
     <p>
-      To install, simply require <a href="https://packagist.org/packages/dust-php/dust-php">dust-php</a> in your <a href="http://getcomposer.org">composer</a>.json like so:
+      To install, simply require <a href="https://packagist.org/packages/dust-php/dust-php">dust-php/dust-php</a> in your <a href="http://getcomposer.org">composer</a>.json like so:
     </p>
     <div class="code">
       <pre><code data-language="javascript">{
     "require": {
-        "dust-php": "latest"
+        "dust-php/dust-php": "0.1.0"
     }
 }</code></pre>
     </div>
@@ -960,7 +960,9 @@ echo($dust->render('test', $context));</code></pre>
     </div>
     <script src="jquery.min.js"></script>
     <script src="bootstrap.min.js"></script>
+    <!--[if gt IE 8]>-->
     <script src="rainbow-custom.min.js"></script>
+    <!--[endif]>-->
     <script type="text/javascript">
 
   var _gaq = _gaq || [];
