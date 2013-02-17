@@ -141,7 +141,7 @@ $context = new Context();</code></pre>
     <p>
       <ul>
         <li>If there is no value found for a key, nothing is output</li>
-        <li>Extra whitespace is compressed by default</li>
+        <li>Template whitespace is preserved by default</li>
         <li><code>{! Comment syntax !}</code> is how you write comments</li>
         <li>All output values are escaped to avoid Cross Site Scripting (XSS) unless you use filters:
           <ul>
@@ -428,10 +428,10 @@ echo($output);</code></pre>
 
     <a class="sectionLink" id="Logic" href="#Logic"><h3>Logic in Templates</h3></a>
     <p>
-      Templates with logic versus "logic-less" templates is a hotly debated point among template language designer and users. Dust straddles the divide by adopting a "less logic" stance. We all know that real business logic does not belong in the presentation layer, but what about simple presentation-oriented things like coloring alternate rows in table or marking the selected option in a &lt;select> dropdown? It seems equally wrong to ask the controller/business logic code to compute these down to simple booleans in order to reduce the logic in the presentation template. This route just lead to polluting the business layer code with presentation-oriented logic.
+      Templates with logic versus "logic-less" templates is a hotly debated point among template language designer and users. Dust straddles the divide by adopting a "less logic" stance. We all know that real business logic does not belong in the presentation layer, but what about simple presentation-oriented things like coloring alternate rows in table or marking the selected option in a &lt;select> dropdown? It seems equally wrong to ask the controller/business logic code to compute these down to simple booleans in order to reduce the logic in the presentation template. This route just leads to polluting the business layer code with presentation-oriented logic.
     </p>
     <p>
-      Dust provides some simple logic mechanisms and trusts you to be sensible in minimizing the logic in your templates to only deal with presentation-oriented decisions. That said, let's take a look at the ways Dust let's you have logic.
+      Dust provides some simple logic mechanisms and trusts you to be sensible in minimizing the logic in your templates to only deal with presentation-oriented decisions. That said, let's take a look at the ways Dust lets you have logic.
     </p>
     <p>
       There are two other special section notations that provide conditional testing:
@@ -495,7 +495,7 @@ echo($output);</code></pre>
 ]</code></pre>
     </div>
     <p>
-      In the original dust, it does not trigger the <code>{:else}</code> block. LinkedIn's version fixed it, to keep # and ? consistent
+      In the original Dust, it does not trigger the <code>{:else}</code> block. LinkedIn's version fixed it, to keep # and ? consistent
     </p>
     <p>
       Take special care if you are trying to pass a boolean parameter. param=true and param=false do not pass true/false as you might expect. They are treated as references to variables named "true" and "false". Unlike PHP, they are not reserved names. Note that they are not reserved in property names either so you can have a property named true or false. So you might think to pass 0 and 1 to your boolean-like parameter. That won't work either. Dust's boolean testing (i.e. <code>{?xxx}</code>) is more of an existence test than a boolean test. Therefore, with param=1 and param=0 both value exists and so are considered true. Your best bet is to pass 1 and "", e.g. param=1 or param="". You could also leave off param="" if you are sure the name is not elsewhere in your data and accessible.
@@ -626,7 +626,7 @@ Look, I can even use array access: bar</code></pre>
     </p>
     <h5>Automatic Loading from Filesystem</h5>
     <p>
-      If <code>compileFile</code> is used originally without an override name, it will have a directory and all referenced partials (that haven't already been loaded) will be assumed to have the ".dust" extension and attmpt to load relative to the template's path. You can also add strings to the <code>includedDirectories</code> array on the Dust object. If a referenced partial name is not found relative to the template's path (or there is no relative path info), it will attempt to find the template relative the paths in the <code>includedDirectories</code> array, in order.
+      If <code>compileFile</code> is used originally without an override name, it will have a directory and all referenced partials (that haven't already been loaded) will be assumed to have the ".dust" extension and attempt to load relative to the template's path. You can also add strings to the <code>includedDirectories</code> array on the Dust object. If a referenced partial name is not found relative to the template's path (or there is no relative path info), it will attempt to find the template relative the paths in the <code>includedDirectories</code> array, in order.
     </p>
     <p>
       The autoloader can also be overridden either by setting the <code>autoloaderOverride</code> to a callable, or simply extending the main Dust class and overriding <code>loadTemplate</code>. Otherwise, Dust will look for previously loaded templates of the same name, then if relative file info for the template is present or at least one include directory is set, it will attempt to resolve the name as a path (appending ".dust" to the filename if needed).
