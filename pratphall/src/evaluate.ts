@@ -30,7 +30,7 @@ module Dust.Evaluate {
 
         evaluateBody(body: Ast.Body, ctx: Context, chunk: Chunk) {
             //go ahead and set the file path on the current context
-            ctx.currentFilePath = body.filePath;
+            if (body.filePath !== null) ctx.currentFilePath = body.filePath;
             body.parts.forEach((part: Ast.Part) => {
                 if (part instanceof Ast.Comment) { }
                 else if (part instanceof Ast.Section) chunk = this.evaluateSection(<Ast.Section>part, ctx, chunk);
