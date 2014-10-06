@@ -205,7 +205,10 @@ class Evaluator {
 
     public function evaluateReference(Ast\Reference $ref, Context $ctx, Chunk $chunk) {
         //resolve
-        $resolved = $this->normalizeResolved($ctx, $ctx->resolve($ref->identifier), $chunk);
+        //$resolved = $this->normalizeResolved($ctx, $ctx->resolve($ref->identifier), $chunk);
+        // Why this ^^ ? It enables me to call a function from a reference!
+        $resolved = $ctx->resolve($ref->identifier);
+
         if (!$this->isEmpty($resolved)) {
             if ($resolved instanceof Chunk) {
                 return $resolved;
