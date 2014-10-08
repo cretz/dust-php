@@ -205,9 +205,7 @@ class Evaluator {
 
     public function evaluateReference(Ast\Reference $ref, Context $ctx, Chunk $chunk) {
         //resolve
-        //$resolved = $this->normalizeResolved($ctx, $ctx->resolve($ref->identifier), $chunk);
-        // Why this ^^ ? It enables me to call a function from a reference!
-        $resolved = $ctx->resolve($ref->identifier);
+        $resolved = $this->normalizeResolved($ctx, $ctx->resolve($ref->identifier), $chunk);
 
         if (!$this->isEmpty($resolved)) {
             if ($resolved instanceof Chunk) {
@@ -258,7 +256,7 @@ class Evaluator {
     public function normalizeResolved(Context $ctx, $resolved, Chunk $chunk, Ast\Section $section = null) {
         $handledSpecial = true;
         while ($handledSpecial) {
-            if (is_callable($resolved)) {
+            if (is_callable($resolved) && !is_string($resolved)) {
                 //call callback
                 $resolved = $this->handleCallback($ctx, $resolved, $chunk, $section);
             } elseif ($resolved instanceof Ast\Inline) {
