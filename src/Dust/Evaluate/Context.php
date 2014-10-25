@@ -4,20 +4,20 @@ namespace Dust\Evaluate;
 use Dust\Ast;
 class Context {
     public $evaluator;
-    
+
     public $parent;
-    
+
     public $head;
-    
+
     public $currentFilePath;
-    
+
     public function __construct(Evaluator $evaluator, Context $parent = null, State $head = null) {
         $this->evaluator = $evaluator;
         $this->parent = $parent;
         $this->head = $head;
         if ($parent != null) $this->currentFilePath = $parent->currentFilePath;
     }
-    
+
     public function get($str) {
         $ident = new Ast\Identifier(-1);
         $ident->key = $str;
@@ -26,7 +26,7 @@ class Context {
         if ($resolved instanceof Chunk) return $resolved->out;
         return $resolved;
     }
-    
+
     public function push($head, $index = null, $length = null, $iterationCount = null) {
         $state = new State($head);
         if ($index !== null) $state->params['$idx'] = $index;
@@ -34,11 +34,11 @@ class Context {
         if ($iterationCount !== null) $state->params['$iter'] = $iterationCount;
         return $this->pushState($state);
     }
-    
+
     public function pushState(State $head) {
         return new Context($this->evaluator, $this, $head);
     }
-    
+
     public function resolve(Ast\Identifier $identifier, $forceArrayLookup = false, $mainValue = null) {
         if ($mainValue === null) $mainValue = $this->head->value;
         //try local
@@ -60,7 +60,7 @@ class Context {
         }
         return $resolved;
     }
-    
+
     public function resolveLocal(Ast\Identifier $identifier, $parentObject, $forceArrayLookup = false) {
         $key = null;
         if ($identifier->key != null) $key = $identifier->key;
@@ -97,7 +97,7 @@ class Context {
         }
         return $result;
     }
-    
+
     public function findInObject($key, $parent) {
         if (is_object($parent) && !is_numeric($key)) {
             //prop or method
@@ -105,25 +105,28 @@ class Context {
                 return $parent->{$key};
             } elseif (method_exists($parent, $key)) {
                 return (new \ReflectionMethod($parent, $key))->getClosure($parent);
+            } elseif(is_callable([$parent,'get' . ucfirst($key)])) {
+                $getter = 'get' . ucfirst($key);
+                return $parent->$getter();
             }
         } else return null;
     }
-    
+
     public function findInArrayAccess($key, $value) {
         if ((is_array($value) || $value instanceof \ArrayAccess) && isset($value[$key])) {
             return $value[$key];
         } else return null;
     }
-    
+
     public function current() {
         if ($this->head->forcedParent != null) return $this->head->forcedParent;
         return $this->head->value;
     }
-    
+
     public function rebase($head) {
         return $this->rebaseState(new State($head));
     }
-    
+
     public function rebaseState(State $head) {
         //gotta get top parent
         $topParent = $this;
@@ -131,5 +134,5 @@ class Context {
         //now create
         return new Context($this->evaluator, $topParent, $head);
     }
-    
+
 }
