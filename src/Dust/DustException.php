@@ -1,5 +1,6 @@
 <?php
 namespace Dust;
 
-class DustException extends \Exception {
+class DustException extends \Exception
+{
 }

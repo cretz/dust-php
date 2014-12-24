@@ -1,5 +1,6 @@
 <?php
 namespace Dust\Parse;
 
-class ParserOptions {
+class ParserOptions
+{
 }

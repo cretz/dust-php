@@ -8,3 +8,4 @@
 *.js.map
 /build
 /composer.lock
+.idea/
