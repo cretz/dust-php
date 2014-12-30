@@ -1,16 +1,17 @@
 <?php
-namespace Dust\Parse;
-
-class ParseException extends \Dust\DustException
+namespace Dust\Parse
 {
-    public $line;
+    class ParseException extends \Dust\DustException
+    {
+        /**
+         * @param string $message
+         * @param int    $line
+         * @param int    $col
+         */
+        public function __construct($message, $line, $col) {
 
-    public $col;
-
-    public function __construct($message, $line, $col) {
-        $this->line = $line;
-        $this->col = $col;
-        parent::__construct('(' . $line . ',' . $col . ') ' . $message);
+            parent::__construct('(' . $line . ',' . $col . ') ' . $message);
+        }
     }
-
 }
+

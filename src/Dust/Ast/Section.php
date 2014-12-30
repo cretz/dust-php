@@ -13,6 +13,9 @@ class Section extends Part
 
     public $parameters;
 
+    /**
+     * @var Body
+     */
     public $body;
 
     public $bodies;

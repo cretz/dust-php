@@ -24,7 +24,7 @@ class Evaluator
     }
 
     public function evaluate(Ast\Body $source, $state) {
-        return trim($this->evaluateBody($source, new Context($this, NULL, new State($state)), new Chunk($this))->out);
+        return trim($this->evaluateBody($source, new Context($this, NULL, new State($state)), new Chunk($this))->getOut());
     }
 
     public function evaluateBody(Ast\Body $body, Context $ctx, Chunk $chunk) {
@@ -390,7 +390,7 @@ class Evaluator
                         $newChunk->write(strval($value));
                     }
                 }
-                $resolved = $newChunk->out;
+                $resolved = $newChunk->getOut();
                 break;
             }
             else

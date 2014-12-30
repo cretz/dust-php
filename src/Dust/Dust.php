@@ -6,7 +6,7 @@ namespace Dust
 
     class Dust implements \Serializable
     {
-        const DUST_FILE_EXTENSION = '.dust';
+        const FILE_EXTENSION = '.dust';
 
         /**
          * @var \Dust\Parse\Parser
@@ -132,9 +132,9 @@ namespace Dust
          */
         public function resolveAbsoluteDustFilePath($path, $basePath = NULL) {
             //add extension if necessary
-            if(substr_compare($path, self::DUST_FILE_EXTENSION, -5, 5) !== 0)
+            if(substr_compare($path, self::FILE_EXTENSION, -5, 5) !== 0)
             {
-                $path .= self::DUST_FILE_EXTENSION;
+                $path .= self::FILE_EXTENSION;
             }
 
             if($basePath != NULL)

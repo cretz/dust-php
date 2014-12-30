@@ -30,7 +30,7 @@ class Context
         $resolved = $this->evaluator->normalizeResolved($this, $resolved, new Chunk($this->evaluator));
         if($resolved instanceof Chunk)
         {
-            return $resolved->out;
+            return $resolved->getOut();
         }
 
         return $resolved;
@@ -169,7 +169,10 @@ class Context
             {
                 return (new \ReflectionMethod($parent, $key))->getClosure($parent);
             }
-            elseif(is_callable([$parent, 'get' . ucfirst($key)]))
+            elseif(is_callable([
+                $parent,
+                'get' . ucfirst($key)
+            ]))
             {
                 $getter = 'get' . ucfirst($key);
 

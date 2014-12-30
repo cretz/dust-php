@@ -1,41 +1,73 @@
 <?php
-namespace Dust\Evaluate;
-
-use Dust\Ast;
-
-class Bodies implements \ArrayAccess
+namespace Dust\Evaluate
 {
-    private $section;
+    use Dust\Ast;
 
-    public $block;
+    class Bodies implements \ArrayAccess
+    {
+        /**
+         * @var \Dust\Ast\Section
+         */
+        private $section;
 
-    public function __construct(Ast\Section $section) {
-        $this->section = $section;
-        $this->block = $section->body;
-    }
+        /**
+         * @var \Dust\Ast\Body
+         */
+        public $block;
 
-    public function offsetExists($offset) {
-        return $this[ $offset ] != NULL;
-    }
-
-    public function offsetGet($offset) {
-        for($i = 0; $i < count($this->section->bodies); $i++)
-        {
-            if($this->section->bodies[ $i ]->key == $offset)
-            {
-                return $this->section->bodies[ $i ]->body;
-            }
+        /**
+         * @param \Dust\Ast\Section $section
+         */
+        public function __construct(Ast\Section $section) {
+            $this->section = $section;
+            $this->block = $section->body;
         }
 
-        return NULL;
-    }
+        /**
+         * @param mixed $offset
+         *
+         * @return bool
+         */
+        public function offsetExists($offset) {
+            return $this[ $offset ] != NULL;
+        }
 
-    public function offsetSet($offset, $value) {
-        throw new EvaluateException($this->section, 'Unsupported set on bodies');
-    }
+        /**
+         * @param mixed $offset
+         *
+         * @return null
+         */
+        public function offsetGet($offset) {
+            for($i = 0; $i < count($this->section->bodies); $i++)
+            {
+                if($this->section->bodies[ $i ]->key == $offset)
+                {
+                    return $this->section->bodies[ $i ]->body;
+                }
+            }
 
-    public function offsetUnset($offset) {
-        throw new EvaluateException($this->section, 'Unsupported unset on bodies');
-    }
+            return NULL;
+        }
 
+        /**
+         * @param mixed $offset
+         * @param mixed $value
+         *
+         * @throws \Dust\Evaluate\EvaluateException
+         */
+        public function offsetSet($offset, $value) {
+            throw new EvaluateException($this->section, 'Unsupported set on bodies');
+        }
+
+        /**
+         * @param mixed $offset
+         *
+         * @throws \Dust\Evaluate\EvaluateException
+         */
+        public function offsetUnset($offset) {
+            throw new EvaluateException($this->section, 'Unsupported unset on bodies');
+        }
+
+    }
 }
+

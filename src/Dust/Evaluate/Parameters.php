@@ -20,7 +20,7 @@ class Parameters
             $resolved = $this->evaluator->normalizeResolved($this->ctx, $resolved, $newChunk);
             if($resolved instanceof Chunk)
             {
-                return $resolved->out;
+                return $resolved->getOut();
             }
 
             return $resolved;
