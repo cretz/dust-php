@@ -1,18 +1,11 @@
 <?php
 namespace Dust\Ast;
 
-class Filter extends Ast
-{
-    /**
-     * @var string
-     */
+class Filter extends Ast {
     public $key;
-
-    /**
-     * @return string
-     */
+    
     public function __toString() {
         return '|' . $this->key;
     }
-
+    
 }

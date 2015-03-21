@@ -1,6 +1,5 @@
 <?php
 namespace Dust\Ast;
 
-class InlinePart extends Part
-{
+class InlinePart extends Part {
 }

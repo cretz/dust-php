@@ -2,23 +2,14 @@
 namespace Dust\Helper;
 
 use Dust\Evaluate;
-
-class Math
-{
+class Math {
     public function __invoke(Evaluate\Chunk $chunk, Evaluate\Context $context, Evaluate\Bodies $bodies) {
         $result = $context->get('key');
-        if($result === NULL)
-        {
-            $chunk->setError('Key required');
-        }
+        if ($result === null) $chunk->setError('Key required');
         $method = $context->get('method');
-        if($method === NULL)
-        {
-            $chunk->setError('Method required');
-        }
+        if ($method === null) $chunk->setError('Method required');
         $operand = $context->get('operand');
-        switch($method)
-        {
+        switch ($method) {
             case 'add':
                 $result += $operand;
                 break;
@@ -47,15 +38,14 @@ class Math
                 $chunk->setError('Unknown method: ' . $method);
         }
         //no bodies means just write
-        if($bodies == NULL || $bodies->block == NULL)
-        {
-            return $chunk->write($result);
-        }
-        else
-        {
+        if ($bodies == null || $bodies->block == null) return $chunk->write($result);
+        else {
             //just eval body with some special state
-            return $chunk->render($bodies->block, $context->pushState(new Evaluate\State((object) ['__selectInfo' => (object) ['selectComparisonSatisfied' => false], 'key' => $result])));
+            return $chunk->render($bodies->block, $context->pushState(new Evaluate\State((object)[
+                '__selectInfo' => (object)['selectComparisonSatisfied' => false],
+                'key' => $result
+            ])));
         }
     }
-
+    
 }

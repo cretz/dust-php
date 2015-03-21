@@ -1,18 +1,11 @@
 <?php
 namespace Dust\Ast;
 
-class Buffer extends Part
-{
-    /**
-     * @var string
-     */
+class Buffer extends Part {
     public $contents;
-
-    /**
-     * @return string
-     */
+    
     public function __toString() {
         return $this->contents;
     }
-
+    
 }

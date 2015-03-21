@@ -1,18 +1,11 @@
 <?php
 namespace Dust\Ast;
 
-class IdentifierParameter extends Parameter
-{
-    /**
-     * @var string
-     */
+class IdentifierParameter extends Parameter {
     public $value;
-
-    /**
-     * @return string
-     */
+    
     public function __toString() {
         return $this->key . '=' . $this->value;
     }
-
+    
 }

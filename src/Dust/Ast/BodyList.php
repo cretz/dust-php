@@ -1,29 +1,15 @@
 <?php
 namespace Dust\Ast;
 
-class BodyList extends Ast
-{
-    /**
-     * @var
-     */
+class BodyList extends Ast {
     public $key;
-
-    /**
-     * @var
-     */
+    
     public $body;
-
-    /**
-     * @return string
-     */
+    
     public function __toString() {
         $str = '{:' . $this->key . '}';
-        if($this->body != NULL)
-        {
-            $str .= $this->body;
-        }
-
+        if ($this->body != null) $str .= $this->body;
         return $str;
     }
-
+    
 }

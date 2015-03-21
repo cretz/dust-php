@@ -1,20 +1,9 @@
 <?php
 namespace Dust\Ast;
 
-class Ast
-{
-    /**
-     * @var int
-     */
+class Ast {
     public $offset;
-
-    /**
-     * @param $offset
-     *
-     * @constructor
-     */
-    public function __construct($offset) {
-        $this->offset = $offset;
-    }
-
+    
+    public function __construct($offset) { $this->offset = $offset; }
+    
 }

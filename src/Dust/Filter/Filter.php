@@ -1,8 +1,7 @@
 <?php
 namespace Dust\Filter;
 
-interface Filter
-{
+interface Filter {
     public function apply($item);
-
+    
 }
