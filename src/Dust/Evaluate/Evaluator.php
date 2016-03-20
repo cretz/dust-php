@@ -256,7 +256,7 @@ class Evaluator {
     public function normalizeResolved(Context $ctx, $resolved, Chunk $chunk, Ast\Section $section = null) {
         $handledSpecial = true;
         while ($handledSpecial) {
-            if (is_callable($resolved) && !is_string($resolved)) {
+            if ($resolved instanceof \Closure) {
                 //call callback
                 $resolved = $this->handleCallback($ctx, $resolved, $chunk, $section);
             } elseif ($resolved instanceof Ast\Inline) {

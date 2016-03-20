@@ -262,7 +262,7 @@ module Dust.Evaluate {
         normalizeResolved(ctx: Context, resolved: any, chunk: Chunk, section?: Ast.Section) {
             var handledSpecial = true;
             while (handledSpecial) {
-                if (is_callable(resolved)) {
+                if (resolved instanceof Closure) {
                     //call callback
                     resolved = this.handleCallback(ctx, resolved, chunk, section);
                 } else if (resolved instanceof Ast.Inline) {
