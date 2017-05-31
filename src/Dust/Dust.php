@@ -18,7 +18,10 @@ class Dust implements \Serializable {
     
     public $autoloaderOverride;
     
-    public function __construct($parser = null, $evaluator = null) {
+    // Default template extension
+    private $_extension = 'dust';
+
+    public function __construct($parser = null, $evaluator = null, $options = null) {
         if ($parser === null) $parser = new Parse\Parser();
         if ($evaluator === null) $evaluator = new Evaluate\Evaluator($this);
         $this->parser = $parser;
@@ -47,6 +50,14 @@ class Dust implements \Serializable {
             "contextDump" => new Helper\ContextDump()
         ];
         $this->automaticFilters = [$this->filters['h']];
+
+        if (is_array($options)) {
+            if (isset($options['extension'])) {
+                $extension = $options['extension'];
+                $this->_extension = $extension{0} === '.' ? substr($extension, 1) : $extension;
+            }
+        }
+
     }
     
     public function compile($source, $name = null) {
@@ -62,7 +73,10 @@ class Dust implements \Serializable {
     
     public function resolveAbsoluteDustFilePath($path, $basePath = null) {
         //add extension if necessary
-        if (substr_compare($path, '.dust', -5, 5) !== 0) $path .= '.dust';
+        $ext = explode('.', $path);
+        if (end($ext) !== $this->_extension) {
+            $path .= '.' . $this->_extension;
+        }
         if ($basePath != null) {
             $possible = realpath($basePath . '/' . $path);
             if ($possible !== false) return $possible;

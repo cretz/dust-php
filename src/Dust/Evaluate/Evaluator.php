@@ -5,23 +5,23 @@ use Dust\Ast;
 use Dust\Filter;
 class Evaluator {
     public $dust;
-    
+
     public $options;
-    
+
     public function __construct(\Dust\Dust $dust, $options = null) {
         if ($options === null) $options = new EvaluatorOptions();
         $this->dust = $dust;
         $this->options = $options;
     }
-    
+
     public function error(Ast\Ast $ast = null, $message = null) {
         throw new EvaluateException($ast, $message);
     }
-    
+
     public function evaluate(Ast\Body $source, $state) {
         return trim($this->evaluateBody($source, new Context($this, null, new State($state)), new Chunk($this))->out);
     }
-    
+
     public function evaluateBody(Ast\Body $body, Context $ctx, Chunk $chunk) {
         //go ahead and set the file path on the current context
         $ctx->currentFilePath = $body->filePath;
@@ -35,7 +35,7 @@ class Evaluator {
         }
         return $chunk;
     }
-    
+
     public function evaluateSection(Ast\Section $section, Context $ctx, Chunk $chunk) {
         //stuff that doesn't need resolution
         if ($section->type == '+') {
@@ -63,7 +63,7 @@ class Evaluator {
             }
             //do we have the helper?
             if (!isset($this->dust->helpers[$section->identifier->key])) {
-                $this->error($section->identifier, 'Unable to find helper');
+                $this->error($section->identifier, 'Unable to find helper: ' . $section->identifier->key);
             }
             $helper = $this->dust->helpers[$section->identifier->key];
             //build state w/ no current value
@@ -135,7 +135,7 @@ class Evaluator {
         }
         return $chunk;
     }
-    
+
     public function evaluateElseBody(Ast\Section $section, Context $ctx, Chunk $chunk) {
         if ($section->bodies != null && count($section->bodies) > 0) {
             foreach ($section->bodies as $value) {
@@ -146,7 +146,7 @@ class Evaluator {
         }
         return $chunk;
     }
-    
+
     public function evaluatePartial(Ast\Partial $partial, Context $ctx, Chunk $chunk) {
         $partialName = $partial->key;
         if ($partialName == null) $partialName = $this->toDustString($this->normalizeResolved($ctx, $partial->inline, $chunk));
@@ -179,7 +179,7 @@ class Evaluator {
         //render the partial then
         return $this->evaluateBody($partialBody, $ctx->pushState($state), $chunk);
     }
-    
+
     public function evaluateSpecial(Ast\Special $spl, Context $ctx, Chunk $chunk) {
         switch ($spl->key) {
             case 'n':
@@ -202,7 +202,7 @@ class Evaluator {
         }
         return $chunk;
     }
-    
+
     public function evaluateReference(Ast\Reference $ref, Context $ctx, Chunk $chunk) {
         //resolve
         $resolved = $this->normalizeResolved($ctx, $ctx->resolve($ref->identifier), $chunk);
@@ -229,12 +229,12 @@ class Evaluator {
         }
         return $chunk;
     }
-    
+
     public function evaluateBuffer(Ast\Buffer $buffer, Context $ctx, Chunk $chunk) {
         $chunk->write($buffer->contents);
         return $chunk;
     }
-    
+
     public function evaluateParameters(array $params, Context $ctx) {
         $ret = [];
         foreach ($params as $value) {
@@ -251,7 +251,7 @@ class Evaluator {
         }
         return $ret;
     }
-    
+
     public function normalizeResolved(Context $ctx, $resolved, Chunk $chunk, Ast\Section $section = null) {
         $handledSpecial = true;
         while ($handledSpecial) {
@@ -274,14 +274,14 @@ class Evaluator {
         }
         return $resolved;
     }
-    
+
     public function isEmpty($val) {
         //numeric not empty
         if (is_numeric($val)) return false;
         //otherwise, normal empty check
         return empty($val);
     }
-    
+
     public function exists($val) {
         //object exists
         if (is_object($val)) return true;
@@ -296,14 +296,14 @@ class Evaluator {
         //nulls do not exist
         return !is_null($val);
     }
-    
+
     public function toDustString($val) {
         if (is_bool($val)) return $val ? 'true' : 'false';
         if (is_array($val)) return implode(',', $val);
         if (is_object($val) && !method_exists($val, '__toString')) return get_class($val);
         return (string) $val;
     }
-    
+
     public function handleCallback(Context $ctx, $callback, Chunk $chunk, Ast\Section $section = null) {
         //reset "this" on closures
         if ($callback instanceof \Closure) {
@@ -341,5 +341,5 @@ class Evaluator {
         //invoke
         return call_user_func_array($callback, $args);
     }
-    
+
 }
