@@ -3,7 +3,7 @@ namespace Dust;
 
 class FilesystemTest extends DustTestBase {
     public static $dir;
-    
+
     public static function setUpBeforeClass() {
         FilesystemTest::$dir = sys_get_temp_dir();
         if (FilesystemTest::$dir[strlen(FilesystemTest::$dir) - 1] != '/') FilesystemTest::$dir .= '/';
@@ -18,8 +18,14 @@ class FilesystemTest extends DustTestBase {
         //add child template
         $fileRes = file_put_contents(FilesystemTest::$dir . '/childTemplate.dust', '{>baseTemplate/}{<two}newTwo{/two}{<three}newThree{/three}');
         if ($fileRes === false) throw new DustException('Unable to create template');
+
+        // Add template with custom extension
+        $fileRes = file_put_contents(FilesystemTest::$dir . '/simpleTemplate.tl', 'line1{~n}line2');
+        if ($fileRes === false) {
+            throw new DustException('Unable to create template');
+        }
     }
-    
+
     public static function deleteTree($dir) {
         foreach (scandir($dir) as $file) {
             if ($file != '.' && $file != '..') {
@@ -29,23 +35,31 @@ class FilesystemTest extends DustTestBase {
         }
         return rmdir($dir);
     }
-    
+
     public static function tearDownAfterClass() {
         if (!FilesystemTest::deleteTree(FilesystemTest::$dir)) throw new DustException('Unable to delete dir: ' . FilesystemTest::$dir);
     }
-    
+
     public function testSimpleBlock() {
         //just run the child, it should auto-find the base
         $compiled = $this->dust->compileFile(FilesystemTest::$dir . '/childTemplate');
         $expected = "before\noneDefault...newTwo...newThree\nafter";
         $this->assertEquals($expected, $this->dust->renderTemplate($compiled, (object)[]));
     }
-    
+
     public function testIncludedDirectories() {
         //add the dir
         $this->dust->includedDirectories[] = FilesystemTest::$dir;
         //now have something call the child
         $this->assertTemplate("Begin - before\noneDefault...newTwo...newThree\nafter - End", 'Begin - {>childTemplate/} - End', (object)[]);
     }
-    
+
+    public function testCustomFileExtension() {
+        $dust = new Dust(null, null, [ 'extension' => 'tl' ]);
+        $dust->includedDirectories[] = FilesystemTest::$dir;
+        $template = $dust->compile('{>simpleTemplate/}');
+        $render = $dust->renderTemplate($template, (object)[]);
+        $this->assertEquals($render, "line1\nline2");
+    }
+
 }
