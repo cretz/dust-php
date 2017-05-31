@@ -100,8 +100,8 @@ class Context {
     
     public function findInObject($key, $parent) {
         if (is_object($parent) && !is_numeric($key)) {
-            //prop or method
-            if (array_key_exists($key, $parent)) {
+            //prop || overloaded prop or method
+            if (array_key_exists($key, $parent) || ( !($parent instanceof \Closure) && isset($parent->{$key})) ) {
                 return $parent->{$key};
             } elseif (method_exists($parent, $key)) {
                 return (new \ReflectionMethod($parent, $key))->getClosure($parent);

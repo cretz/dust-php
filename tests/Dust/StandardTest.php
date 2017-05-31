@@ -77,5 +77,9 @@ class StandardTest extends DustTestBase {
         //test some things (kinda taken from PHP manual)
         $this->assertTemplate('bcdef,bcd,abcd,abcdef,bc', '{@substr str="abcdef" begin=1 /},' . '{@substr str="abcdef" begin=1 len=3 /},' . '{@substr str="abcdef" len=4 /},' . '{@substr str="abcdef" len=8 /},' . '{@substr str="abcdef" begin=1 end=3 /}', (object)[]);
     }
+
+    public function testIssetAccess() {
+        $this->assertTemplate('Farce,slapstick,musical comedy', '{#genres}{.}{@sep},{/sep}{/genres}', new StoogesContext());
+    }
     
 }
